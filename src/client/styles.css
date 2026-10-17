@@ -1,4 +1,39 @@
 @import "tailwindcss";
+.billing-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+.billing-card {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin: 0.75rem 0;
+  overflow-wrap: anywhere;
+}
+.billing-price {
+  font-size: 2rem;
+  font-weight: 650;
+}
+.billing-price small {
+  font-size: 0.85rem;
+  font-weight: 400;
+}
+.table-scroll {
+  overflow-x: auto;
+  max-width: 100%;
+}
+.table-scroll table {
+  width: 100%;
+  text-align: left;
+  border-collapse: collapse;
+}
+.table-scroll td,
+.table-scroll th {
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--line);
+}
 :root {
   font-family:
     Inter,

@@ -2,6 +2,16 @@ import { env } from "cloudflare:workers";
 import { expect, test } from "vitest";
 import { app } from "../../src/server/app";
 
+test("health admits the fully migrated schema and rejects an unsupported version", async () => {
+  const health = async () =>
+    (await (
+      await app.request("http://localhost:5173/api/health", {}, env)
+    ).json()) as any;
+  expect(await health()).toMatchObject({ ok: true, schemaVersion: 5 });
+  await env.DB.prepare("INSERT INTO schema_version VALUES(6)").run();
+  expect(await health()).toMatchObject({ ok: false, schemaVersion: 6 });
+});
+
 test("unknown API returns JSON, config never contains secret keys", async () => {
   for (const path of ["/api", "/api/missing"]) {
     const response = await app.request(`http://localhost:5173${path}`, {}, env);
@@ -18,6 +28,7 @@ test("unknown API returns JSON, config never contains secret keys", async () => 
     [
       "authMode",
       "authReady",
+      "billingEnabled",
       "environment",
       "maxFileBytes",
       "preset",

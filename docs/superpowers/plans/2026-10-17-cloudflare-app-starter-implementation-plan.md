@@ -1,6 +1,7 @@
 # Cloudflare App Starter Implementation Plan
 
 > 用户已批准第二阶段变更：[app-starter / Supabase Auth 修订](../specs/2026-10-17-phase-two-auth-amendment.md)。第二阶段以此修订为准；历史 CPU 证据不变。
+> 当前执行范围更新：用户已明确要求完成第三阶段 Task 8–9，并确认本轮仍无 Stripe Sandbox，完成本地验证、保留真实支付未验证项。第二阶段已交付；下方“暂缓”段落是阶段一历史记录，不再限制当前实现。Supabase Auth 修订继续有效，Agent 运行与用量结算留在第四阶段。第三阶段进度见 [验收记录](../../validation/phase-three-status.md)。
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** 在独立开源仓库交付一套少配置的 Web 与 Agent 模板，先通过三个真实验证门槛，再搭建模板。
@@ -225,6 +226,8 @@
 Phase 2 acceptance amendment: hosted Supabase credentials were deferred by the user. Auth/email pass on official local Supabase/Postgres/Mailpit; cloud acceptance is restricted to anonymous dev/prod deployment, routing, isolation and retained infrastructure fixtures. Hosted auth/email and new auth CPU limits remain unverified. Supabase Auth supersedes the original Better Auth/Resend steps. Historical Phase 1 Free gate stays failed.
 
 ## 阶段三 支付与权益
+
+当前实施记录：支付与权益代码、管理界面及本地验收已交付，详见[第三阶段验收](../../validation/phase-three-status.md)。实际文件将 Checkout/Portal 放在同一服务、管理员路由集中在 billing routes，测试集中为 `billing.spec.ts`；接口和验收目标不变。后续用户增加可选邮件能力，按[邮件文档](../../email.md)以独立配置实现，不绑定真实域名。用户授权创建真实 Stripe 测试沙箱，匿名沙箱已建立且密钥保存在忽略提交的本地文件，但实际沙箱套件在账户权限门槛失败；正在等待独立 CLI 授权，不能勾选真实支付步骤。
 
 ### Task 8: Stripe 初始化、Checkout 与 Portal
 

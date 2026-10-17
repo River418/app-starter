@@ -2,9 +2,13 @@
 
 An MIT-licensed starter for deploying a React application and API together on Cloudflare. Use your own accounts; no parent repository, Codex, MCP, or private infrastructure is required.
 
-**Phase 2 delivers the Web foundation:** Supabase Auth, administrator bootstrap/invitations, React workspace, owner-scoped D1 records, private R2 attachments, and native deployment scripts. Payments and Agent execution are later phases. The `agent` preset currently reserves a separate entry; chat and Workflows are not implemented yet.
+**Web foundation and optional billing:** Supabase Auth, administrator bootstrap/invitations, React workspace, owner-scoped D1 records, private R2 attachments, native deployment, and Stripe Checkout/Portal with a source-based entitlement ledger. The `agent` preset currently reserves a separate entry; chat, Workflows and usage settlement are Phase 4.
 
 [中文说明](docs/README.zh-CN.md) · [Deployment](docs/deployment.md) · [Architecture](docs/architecture.md) · [Validation](docs/validation/phase-two-status.md)
+
+Payments default to disabled. Enable `billing` in `app.config.ts`, provide your own environment's Stripe secret key, and deploy: the setup command manages Products, versioned Prices, Portal, Webhook and secret readiness. [Billing setup, semantics and recovery](docs/billing.md) · [Phase 3 validation](docs/validation/phase-three-status.md). Real Sandbox payment gates remain unverified; local acceptance uses a deterministic provider substitute.
+
+[Optional email](docs/email.md): Cloudflare aliases forward to your verified existing mailbox; Resend sends from your own verified domain and can provide Supabase custom SMTP. Configure once with `npm run email:setup -- dev`. No mail provider or domain is needed for default invite-mode startup.
 
 ## Start locally
 
@@ -63,6 +67,7 @@ npm run type-check
 npm test
 npm run test:e2e
 npm run test:e2e:public
+npm run test:e2e:billing
 ```
 
 Tests use real local Supabase Auth/Postgres/Mailpit, Worker APIs, D1 and R2. Browser tests do not intercept backend routes. E2E resets only its isolated D1/R2 persistence. Public E2E temporarily changes the local app/Auth signup mode and restores invite mode; run it separately from dev servers and other tests.

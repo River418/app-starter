@@ -4,6 +4,7 @@ import type { Bindings } from "./types";
 
 export function readPublicConfig(env: Bindings): PublicConfig {
   return {
+    billingEnabled: Boolean(config.billing?.enabled),
     slug: config.slug,
     title: config.title,
     preset: config.preset,

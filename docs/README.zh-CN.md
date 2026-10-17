@@ -1,6 +1,10 @@
 # app-starter
 
-可独立克隆的 MIT 开源应用模板。第二阶段提供 React 工作台、Supabase Auth、管理员初始化与邀请、D1 记录和私有 R2 附件。支付和 Agent 运行时属于后续阶段；`agent` 目前只有独立构建入口。
+可独立克隆的 MIT 开源应用模板。提供 React 工作台、Supabase Auth、管理员初始化与邀请、D1 记录和私有 R2 附件，以及可选的 Stripe 支付和权益账本。Agent 运行与用量结算属于第四阶段；`agent` 目前只有独立构建入口。
+
+支付默认关闭。在 `app.config.ts` 配置单币种月订阅/额度包，在忽略提交的 `.dev.vars.dev` 配置自己的 `STRIPE_SECRET_KEY`，随后正常部署。工具自动同步 Product、版本化 Price、独立 Portal 和 Webhook，发布签名密钥并验证运行版本后才开放支付。无需手工复制 Price ID。详见[支付配置与恢复](billing.md)及[第三阶段验收](validation/phase-three-status.md)。本地替身验证不代表真实 Stripe Sandbox 或云端 CPU 验收通过。
+
+[邮件能力](email.md)同样可选：Cloudflare 将域名别名转发到你的现有邮箱，Resend 从验证过的域名发信，也可作为 Supabase 自定义 SMTP。`npm run email:setup -- dev` 负责可重复的域名/DNS/转发配置与待验证状态；默认邀请模式不要求域名或发信供应商。本轮不绑定真实域名，按 novel-writer 的发送/错误行为完成本地对标验证。
 
 安装 Node.js 24、Docker 和官方 Supabase CLI 后：
 
@@ -19,6 +23,7 @@ npm run type-check
 npm test
 npm run test:e2e
 npm run test:e2e:public
+npm run test:e2e:billing
 ```
 
 测试访问真实本地 Auth、Postgres、邮件、Worker API、D1 与 R2，不拦截浏览器后端请求。公开模式测试临时切换并恢复配置。完整云认证需要你自己的专用 Supabase 项目和 SMTP，本地通过不代表云端 CPU 或邮件投递已验证。

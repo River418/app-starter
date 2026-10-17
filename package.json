@@ -29,7 +29,12 @@
     "auth:local:start": "node scripts/local-auth.mjs start",
     "auth:local:stop": "node scripts/local-auth.mjs stop",
     "test:e2e:public": "node scripts/public-e2e.mjs",
-    "format": "prettier --write app.config.ts src scripts/{bootstrap-token,boundaries,config,deploy,deployment,dev,e2e-server,local-auth,process,public-e2e}.mjs tests/{build,integration,e2e} vite.config.ts vitest.app.config.ts playwright.config.ts locales wrangler.jsonc"
+    "format": "prettier --write app.config.ts src scripts/{bootstrap-token,boundaries,config,deploy,deployment,dev,e2e-server,local-auth,process,public-e2e}.mjs tests/{build,integration,e2e} vite.config.ts vitest.app.config.ts playwright.config.ts locales wrangler.jsonc",
+    "billing:setup": "node scripts/setup-billing.mjs",
+    "test:e2e:billing": "node scripts/billing-e2e.mjs",
+    "email:setup": "node scripts/setup-email.mjs",
+    "test:sandbox": "node --env-file=.dev.vars.dev node_modules/vitest/vitest.mjs run --config vitest.sandbox.config.ts",
+    "test:sandbox:browser": "node --env-file=.dev.vars.dev scripts/sandbox-browser.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "5.9.2",
@@ -50,7 +55,8 @@
     "react-router": "8.4.0",
     "sonner": "2.0.8",
     "tailwind-merge": "3.7.0",
-    "zod": "4.6.7"
+    "zod": "4.6.7",
+    "stripe": "23.0.0"
   },
   "devDependencies": {
     "@ai-sdk/react": "4.0.147",
@@ -70,7 +76,6 @@
     "better-auth": "1.7.10",
     "jsonc-parser": "3.2.0",
     "prettier": "3.9.10",
-    "stripe": "23.0.0",
     "tailwindcss": "4.3.3",
     "typescript": "7.0.2",
     "vite": "8.3.4",

@@ -40,6 +40,14 @@ export const router = createBrowserRouter([
         Component: PublicLayout,
         children: [
           {
+            path: "pricing",
+            lazy: async () => ({
+              Component: (
+                await import("../features/billing/client/PricingPage")
+              ).PricingPage,
+            }),
+          },
+          {
             index: true,
             lazy: async () => ({
               Component: (await import("./pages/common")).HomePage,
@@ -85,6 +93,39 @@ export const router = createBrowserRouter([
         loader: () => identity(),
         children: [
           { index: true, loader: () => redirect("/app/records") },
+          {
+            path: "pricing",
+            lazy: async () => ({
+              Component: (
+                await import("../features/billing/client/PricingPage")
+              ).PricingPage,
+            }),
+          },
+          {
+            path: "billing",
+            lazy: async () => ({
+              Component: (
+                await import("../features/billing/client/BillingPage")
+              ).BillingPage,
+            }),
+          },
+          {
+            path: "billing/return",
+            lazy: async () => ({
+              Component: (
+                await import("../features/billing/client/PaymentReturnPage")
+              ).PaymentReturnPage,
+            }),
+          },
+          {
+            path: "admin/billing",
+            loader: () => identity(true),
+            lazy: async () => ({
+              Component: (
+                await import("../features/billing/client/AdminBillingPage")
+              ).AdminBillingPage,
+            }),
+          },
           {
             path: "records",
             lazy: async () => ({
