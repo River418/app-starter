@@ -77,8 +77,9 @@ export async function setupBilling(environment) {
         "execute",
         "DB",
         ...cli,
-        "--file",
-        `${dir}/query.sql`,
+        // Remote --file uses D1's bulk import API and returns import progress,
+        // not SELECT rows. Read mappings through the native query API instead.
+        ...(read ? ["--command", sql] : ["--file", `${dir}/query.sql`]),
         ...(read ? ["--json"] : []),
       ],
       { capture: true, env: cliEnv },
