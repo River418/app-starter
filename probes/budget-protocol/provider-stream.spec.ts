@@ -12,8 +12,14 @@ it('keeps single dialects and removes only equal mirrored text', async () => {
   const value = { response: 'hello', choices: [{ delta: { content: 'hello' } }], usage: { total_tokens: 2 } };
   expect(JSON.parse((await new Response(normalizeWorkersAIStream(wire(value))).text()).slice(6).trim())).toEqual({ choices: value.choices, usage: value.usage });
 });
-it('refuses conflicting dialects instead of silently losing model output', async () => {
-  await expect(new Response(normalizeWorkersAIStream(wire({ response: 'a', choices: [{ delta: { content: 'b' } }] }))).text()).rejects.toThrow(/Conflicting/);
+it('selects the OpenAI text dialect without stripping quotes or repeated fragments', async () => {
+  // Actual wire may strip quotes/space only in its legacy response alias.
+  for (const content of [' "initial"', '', 'repeat repeat']) {
+    const value = { response: 'legacy', choices: [{ delta: { content } }], usage: { total_tokens: 2 } };
+    expect(JSON.parse((await new Response(normalizeWorkersAIStream(wire(value))).text()).slice(6).trim())).toEqual({ choices: value.choices, usage: value.usage });
+  }
+});
+it('refuses conflicting tool dialects instead of silently changing tool input', async () => {
   const native = { name: 'writeSetting', arguments: '{"value":' };
   for (const other of [{ function: { ...native, arguments: 'different' } }, { id: 'b', function: native }, { index: 1, function: native }]) {
     await expect(new Response(normalizeWorkersAIStream(wire({ tool_calls: [{ ...native, id: 'a' }], choices: [{ delta: { tool_calls: [other] } }] }))).text()).rejects.toThrow(/Conflicting/);

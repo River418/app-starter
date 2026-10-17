@@ -1,5 +1,6 @@
 // workers-ai-provider@4.0.0 emits both dialects when Workers AI mirrors a frame.
-// Remove only equivalent same-frame aliases; never deduplicate generated text.
+// Select the OpenAI text dialect when present; validate mirrored tool inputs.
+// Never deduplicate generated text across frames.
 interface ToolFragment { id?: string; index?: number; type?: string; name?: string; arguments?: string; function?: { name?: string; arguments?: string } }
 function mergeMirroredTools(left: ToolFragment[], right: ToolFragment[]) {
   if (!Array.isArray(left) || !Array.isArray(right) || left.length !== right.length) throw Error('Conflicting Workers AI SSE dialects');
@@ -13,7 +14,7 @@ function mergeMirroredTools(left: ToolFragment[], right: ToolFragment[]) {
   });
 }
 export function normalizeWorkersAIStream(stream: ReadableStream<Uint8Array>) {
-  let buffered = '', mirrors = 0;
+  let buffered = '', selected = 0, textDifferences = 0;
   const encode = new TextEncoder();
   const block = (value: string) => {
     const lines = value.split(/\r?\n/), data = lines.filter(l => l.startsWith('data:')).map(l => l.slice(5).trimStart()).join('\n');
@@ -22,14 +23,16 @@ export function normalizeWorkersAIStream(stream: ReadableStream<Uint8Array>) {
     try { frame = JSON.parse(data); } catch { return value; }
     const delta = frame.choices?.[0]?.delta;
     let changed = false;
-    for (const [native, openai] of [['response','content'],['tool_calls','tool_calls']]) {
-      if (frame[native] == null || delta?.[openai] == null || (Array.isArray(delta[openai]) && delta[openai].length === 0)) continue;
-      if (native === 'tool_calls') delta[openai] = mergeMirroredTools(frame[native], delta[openai]);
-      else if (frame[native] !== delta[openai]) throw Error('Conflicting Workers AI SSE dialects');
-      delete frame[native]; changed = true;
+    if (frame.response != null && typeof delta?.content === 'string') {
+      textDifferences += Number(frame.response !== delta.content);
+      delete frame.response; changed = true;
+    }
+    if (Array.isArray(frame.tool_calls) && frame.tool_calls.length && Array.isArray(delta?.tool_calls) && delta.tool_calls.length) {
+      delta.tool_calls = mergeMirroredTools(frame.tool_calls, delta.tool_calls);
+      delete frame.tool_calls; changed = true;
     }
     if (!changed) return value;
-    mirrors++;
+    selected++;
     return [...lines.filter(l => !l.startsWith('data:')), `data: ${JSON.stringify(frame)}`].join('\n');
   };
   return stream.pipeThrough(new TextDecoderStream()).pipeThrough(new TransformStream<string, Uint8Array>({
@@ -43,7 +46,7 @@ export function normalizeWorkersAIStream(stream: ReadableStream<Uint8Array>) {
     },
     flush(target) {
       if (buffered) target.enqueue(encode.encode(block(buffered)));
-      if (mirrors) console.info('Workers AI same-frame aliases normalized', { frames: mirrors });
+      if (selected) console.info('Workers AI SSE dialect selected', { frames: selected, textDifferences });
     },
   }));
 }
