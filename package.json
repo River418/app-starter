@@ -14,6 +14,7 @@
     "verify:gate": "node scripts/verify-gate.mjs"
   },
   "dependencies": {
+    "ai": "7.0.143",
     "better-auth": "1.7.10",
     "hono": "4.13.13",
     "stripe": "23.0.0",

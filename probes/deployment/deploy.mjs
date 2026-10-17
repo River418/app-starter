@@ -25,7 +25,7 @@ export function reconcileDatabase(binding, databases) {
   return existing?.uuid ?? null;
 }
 
-export async function ensureSecrets(path) {
+export async function ensureSecrets(path, { remoteSecretsConfigured = false } = {}) {
   await mkdir(dirname(path), { recursive: true });
   try {
     const secrets = JSON.parse(await readFile(path, 'utf8'));
@@ -33,9 +33,10 @@ export async function ensureSecrets(path) {
     return secrets;
   } catch (error) {
     if (error.code !== 'ENOENT') throw error;
+    if (remoteSecretsConfigured) throw Error('Local secrets missing for an existing deployment; restore the saved secret file instead of rotating authentication');
     const secrets = { PROBE_KEY: randomBytes(32).toString('base64url'), BETTER_AUTH_SECRET: randomBytes(32).toString('base64url') };
     try { await writeFile(path, JSON.stringify(secrets, null, 2) + '\n', { flag: 'wx', mode: 0o600 }); }
-    catch (writeError) { if (writeError.code === 'EEXIST') return ensureSecrets(path); throw writeError; }
+    catch (writeError) { if (writeError.code === 'EEXIST') return ensureSecrets(path, { remoteSecretsConfigured }); throw writeError; }
     return secrets;
   }
 }
@@ -83,8 +84,11 @@ export async function deployProbe({ account, environment, subdomain, prepare = f
   const { stdout: dirty } = await exec('git', ['status', '--porcelain'], { cwd: root });
   if (dirty.trim()) throw Error('Commit probe source before cloud deployment evidence');
   const secretsPath = resolve(root, '.local/probes', environment, 'secrets.json');
-  await ensureSecrets(secretsPath);
   const common = ['--config', configPath, '--env', environment];
+  let remoteSecretsConfigured = false;
+  try { remoteSecretsConfigured = JSON.parse(await wrangler(['secret', 'list', ...common], options)).some(x => x.name === 'BETTER_AUTH_SECRET'); }
+  catch (error) { if (!/\b10007\b/.test(error.stderr ?? '')) throw error; }
+  await ensureSecrets(secretsPath, { remoteSecretsConfigured });
   await wrangler(['deploy', ...common, '--dry-run', '--autoconfig=false', '--outdir', resolve(root, '.local/build', environment)], options);
   await wrangler(['d1', 'migrations', 'apply', 'DB', ...common, '--remote'], options);
   const output = await wrangler(['deploy', ...common, '--autoconfig=false', '--secrets-file', secretsPath, ...(title ? ['--var', `PROBE_TITLE:${title}`] : [])], options);

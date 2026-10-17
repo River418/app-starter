@@ -5,11 +5,15 @@ import { Hono, type Context } from 'hono';
 import Stripe from 'stripe';
 import { z } from 'zod';
 import { createAuth } from './auth.ts';
+import { dispatchOutbox } from '../../recovery/src/outbox.ts';
+import { recovery } from '../../recovery/src/http.ts';
+export { RecoveryProbeWorkflow } from '../../recovery/src/RunWorkflow.ts';
 
 export interface ProbeEnvironment {
   DB: D1Database;
   FILES: R2Bucket;
   BOOTSTRAP_WORKFLOW: Workflow<{ value: string }>;
+  RUN_WORKFLOW: Workflow<{ runId: string }>;
   PROBE_KEY: string;
   BETTER_AUTH_SECRET: string;
   BETTER_AUTH_URL: string;
@@ -127,6 +131,8 @@ app.post('/api/stripe/webhook', async (c) => {
   return c.json({ received: true });
 });
 
+app.route('/api/probe/recovery', recovery);
+
 app.notFound((c) => c.json({ error: 'Not found' }, 404));
 app.onError((_error, c) => c.json({ error: 'Probe request failed' }, 500));
 
@@ -140,4 +146,4 @@ export class BootstrapProbeWorkflow extends WorkflowEntrypoint<ProbeEnvironment,
   }
 }
 
-export default app;
+export default { fetch: app.fetch, scheduled: async (_event: ScheduledController, env: ProbeEnvironment) => { await dispatchOutbox(env); } };

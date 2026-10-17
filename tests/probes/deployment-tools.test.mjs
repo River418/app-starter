@@ -37,6 +37,7 @@ test('persists authentication secrets before deployment and never rotates them o
     assert.ok(first.BETTER_AUTH_SECRET.length >= 43);
     assert.deepEqual(JSON.parse(await readFile(file, 'utf8')), first);
     assert.notEqual((await ensureSecrets(join(root, 'prod', 'secrets.json'))).BETTER_AUTH_SECRET, first.BETTER_AUTH_SECRET);
+    await assert.rejects(ensureSecrets(join(root, 'lost', 'secrets.json'), { remoteSecretsConfigured: true }), /restore|missing/i);
     await writeFile(file, '{"PROBE_KEY":"incomplete"}');
     await assert.rejects(ensureSecrets(file), /incomplete|invalid/i);
   } finally { await rm(root, { recursive: true, force: true }); }

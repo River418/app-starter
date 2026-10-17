@@ -39,6 +39,11 @@
       "binding": "BOOTSTRAP_WORKFLOW",
       "name": "cfas-probe-local-bootstrap",
       "class_name": "BootstrapProbeWorkflow"
+    },
+    {
+      "binding": "RUN_WORKFLOW",
+      "name": "cfas-probe-local-recovery",
+      "class_name": "RecoveryProbeWorkflow"
     }
   ],
   "env": {
@@ -68,8 +73,18 @@
           "binding": "BOOTSTRAP_WORKFLOW",
           "name": "cfas-probe-418-20261017-dev-bootstrap",
           "class_name": "BootstrapProbeWorkflow"
+        },
+        {
+          "binding": "RUN_WORKFLOW",
+          "name": "cfas-probe-418-20261017-dev-recovery",
+          "class_name": "RecoveryProbeWorkflow"
         }
-      ]
+      ],
+      "triggers": {
+        "crons": [
+          "* * * * *"
+        ]
+      }
     },
     "prod": {
       "name": "cfas-probe-418-20261017-prod",
@@ -97,8 +112,23 @@
           "binding": "BOOTSTRAP_WORKFLOW",
           "name": "cfas-probe-418-20261017-prod-bootstrap",
           "class_name": "BootstrapProbeWorkflow"
+        },
+        {
+          "binding": "RUN_WORKFLOW",
+          "name": "cfas-probe-418-20261017-prod-recovery",
+          "class_name": "RecoveryProbeWorkflow"
         }
-      ]
+      ],
+      "triggers": {
+        "crons": [
+          "* * * * *"
+        ]
+      }
     }
+  },
+  "triggers": {
+    "crons": [
+      "* * * * *"
+    ]
   }
 }
