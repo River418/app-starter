@@ -14,6 +14,10 @@ it('keeps single dialects and removes only equal mirrored text', async () => {
 });
 it('refuses conflicting dialects instead of silently losing model output', async () => {
   await expect(new Response(normalizeWorkersAIStream(wire({ response: 'a', choices: [{ delta: { content: 'b' } }] }))).text()).rejects.toThrow(/Conflicting/);
+  const native = { name: 'writeSetting', arguments: '{"value":' };
+  for (const other of [{ function: { ...native, arguments: 'different' } }, { id: 'b', function: native }, { index: 1, function: native }]) {
+    await expect(new Response(normalizeWorkersAIStream(wire({ tool_calls: [{ ...native, id: 'a' }], choices: [{ delta: { tool_calls: [other] } }] }))).text()).rejects.toThrow(/Conflicting/);
+  }
 });
 it('propagates downstream cancellation to the original provider stream', async () => {
   let cancelled = false;
@@ -24,8 +28,10 @@ it('propagates downstream cancellation to the original provider stream', async (
 
 it('parses mirrored native/OpenAI SSE once and forwards provider cancellation', async () => {
   const events = [
-    { tool_calls: [{ index: 0, id: 'call-one', function: { name: 'writeSetting', arguments: '{"value":' } }], choices: [{ delta: { tool_calls: [{ index: 0, id: 'call-one', function: { name: 'writeSetting', arguments: '{"value":' } }] } }] },
-    { tool_calls: [{ index: 0, function: { arguments: '"approved"}' } }], choices: [{ delta: { tool_calls: [{ index: 0, function: { arguments: '"approved"}' } }] } }] },
+    // Sanitized shape of the actual Workers AI wire captured on 2026-10-17.
+    { tool_calls: [{ name: 'writeSetting' }], choices: [{ delta: { tool_calls: [{ index: 0, id: 'call-one', type: 'function', function: { name: 'writeSetting' } }] } }] },
+    { tool_calls: [{ arguments: '{"value":' }], choices: [{ delta: { tool_calls: [{ index: 0, function: { arguments: '{"value":' } }] } }] },
+    { tool_calls: [{ arguments: '"approved"}' }], choices: [{ delta: { tool_calls: [{ index: 0, function: { arguments: '"approved"}' } }] } }] },
     { choices: [{ delta: {}, finish_reason: 'tool_calls' }], usage: { prompt_tokens: 12, completion_tokens: 4, total_tokens: 16 } },
   ];
   let providerSignal: unknown;

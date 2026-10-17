@@ -1,5 +1,17 @@
 // workers-ai-provider@4.0.0 emits both dialects when Workers AI mirrors a frame.
-// Remove only equal, same-frame aliases; never deduplicate generated text.
+// Remove only equivalent same-frame aliases; never deduplicate generated text.
+interface ToolFragment { id?: string; index?: number; type?: string; name?: string; arguments?: string; function?: { name?: string; arguments?: string } }
+function mergeMirroredTools(left: ToolFragment[], right: ToolFragment[]) {
+  if (!Array.isArray(left) || !Array.isArray(right) || left.length !== right.length) throw Error('Conflicting Workers AI SSE dialects');
+  return right.map((b, i) => {
+    const a = left[i];
+    if (![a.type,b.type].every(t => t == null || t === 'function') || (a.index ?? i) !== (b.index ?? i)
+      || (a.id != null && b.id != null && a.id !== b.id)
+      || (a.function?.name ?? a.name) !== (b.function?.name ?? b.name)
+      || (a.function?.arguments ?? a.arguments) !== (b.function?.arguments ?? b.arguments)) throw Error('Conflicting Workers AI SSE dialects');
+    return { ...b, ...(a.id != null && b.id == null ? { id: a.id } : {}), ...(a.index != null && b.index == null ? { index: a.index } : {}) };
+  });
+}
 export function normalizeWorkersAIStream(stream: ReadableStream<Uint8Array>) {
   let buffered = '', mirrors = 0;
   const encode = new TextEncoder();
@@ -12,7 +24,8 @@ export function normalizeWorkersAIStream(stream: ReadableStream<Uint8Array>) {
     let changed = false;
     for (const [native, openai] of [['response','content'],['tool_calls','tool_calls']]) {
       if (frame[native] == null || delta?.[openai] == null || (Array.isArray(delta[openai]) && delta[openai].length === 0)) continue;
-      if (JSON.stringify(frame[native]) !== JSON.stringify(delta[openai])) throw Error('Conflicting Workers AI SSE dialects');
+      if (native === 'tool_calls') delta[openai] = mergeMirroredTools(frame[native], delta[openai]);
+      else if (frame[native] !== delta[openai]) throw Error('Conflicting Workers AI SSE dialects');
       delete frame[native]; changed = true;
     }
     if (!changed) return value;
