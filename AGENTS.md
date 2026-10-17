@@ -4,7 +4,7 @@ This is an independent open-source Cloudflare application starter. Read the desi
 
 ## Phase gates
 
-- Phase 1 probes are in development. The application template is not implemented and Phase 2 remains locked.
+- Phase 1 evidence is recorded in docs/validation/phase-one-summary.md. The Free CPU gate failed; the application template is not implemented and Phase 2 remains locked.
 - User steering on 2026-10-17: retain the existing Better Auth design and Workers Free, complete the remaining probes, and defer Phase 2. Do not start the template without a later user instruction.
 - The user explicitly waived two unavailable Stripe Sandbox checks. Only the scope recorded in `docs/validation/approved-exceptions.json` may be waived; payment validation remains unverified.
 - Phase 1 may add only the minimum disposable probes and their tooling.

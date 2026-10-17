@@ -10,7 +10,9 @@
 
 **Spec:** [少配置应用模板完整方案](../specs/2026-10-17-minimal-cloudflare-app-starter-design.md)
 
-状态：计划已批准，阶段一实施中。2026-10-17 用户在看到 Free CPU 实测失败后，选择“保留现设计，先完成其余探针并暂缓阶段二”。当前继续任务 1–4 的其余探针；不启动阶段二。阶段三及以后不在本轮执行范围。
+状态：阶段一已形成实测结论，准入未通过。2026-10-17 用户在看到 Free CPU 实测失败后，选择“保留现设计，先完成其余探针并暂缓阶段二”。其余探针已执行；不启动阶段二。阶段三及以后不在本轮执行范围。
+
+实测进度见 [阶段一结论](../../validation/phase-one-summary.md)：Cloudflare 发布 6 项通过、2 项 Stripe Sandbox 按用户豁免且支付未验证；真实模型/浏览器/Workflow 协议 7 项通过；恢复 13 项、60 次竞争通过；Free CPU 失败，完整最大输入/冷请求边界压测未做。Task 1 的 Stripe 同步器尚未实现，不能把 Cloudflare 通过理解为支付功能完成。保留未满足的准入复选框，Task 5–7 按用户要求暂缓。
 
 2026-10-17 用户调整：因暂时没有 Stripe Sandbox，明确允许跳过其真实云验证。仅豁免 Task 1 的两个 Sandbox 重复同步及价格版本用例（见 `docs/validation/approved-exceptions.json`）；相关能力保持 unverified，不得宣称支付已验证。不豁免 Cloudflare 资源重用、未知签名 secret 拒绝就绪、CPU、真实模型或恢复验证。阶段二可以在其余门槛通过并明确披露豁免后开始，正式收款验收仍需后续补做。
 
@@ -41,7 +43,7 @@
 - 新 worktree 内的 submodule：`cloudflare-app-starter/`。父仓库只记录 `.gitmodules`、gitlink 和文档入口，独立仓库拥有源码、lockfile、测试、发布及后续设计。
 - 所有实施命令从独立仓库根执行，不在父仓库的 frontend/backend/admin 安装依赖或启动服务。
 - 子模块提交先推送到独立远端，再更新父仓库 gitlink。父仓库分支不在此阶段合并或推送。
-- 阶段零已建立仓库与计划；本轮执行阶段一、二。不自动购买服务；先过三项真实验证再搭建模板。
+- 阶段零已建立仓库与计划；本轮仅收尾阶段一，阶段二已由用户明确暂缓。不自动购买服务。
 
 ## 阶段与准入条件
 
@@ -97,8 +99,8 @@
 - [ ] **Step 1: 先写失败断言。** `reuses_resources_and_sessions_after_clean_rebuild` 比较首次、重建、只改 title 三份清单，断言 D1/R2/Workflow 绑定和 Stripe Product/Price/Portal/webhook ID 不变，用户/记录/会话保留，migration 不重复，管理员设置不重新开放。
 - [ ] **Step 2: 增加负测并验证失败。** `rejects_wrong_account_or_environment`、`resumes_after_resource_created_response_lost`、`does_not_mark_unknown_webhook_secret_ready`、`price_change_creates_only_new_price`；先用确定性故障点让相应断言失败。命令：`npm run probe:deployment -- --local`。
 - [ ] **Step 3: 实现最小部署与持久映射。** 使用原生 Wrangler；D1 准备后再构建、迁移、部署。Stripe 对象使用持久映射和稳定 metadata 查找，不能只靠可能过期的幂等键。中断后签名 secret 不可确认时保持未就绪并提供修复。
-- [ ] **Step 4: 在独立验证资源上执行。** 命令：`npm run probe:deployment -- --cloud`。Cloudflare 使用一次性验证应用的真实 dev/prod 资源，绝不修改既有环境；Stripe 同步器在两个独立 Sandbox 验证并记录覆盖范围，正式模式拒绝测试凭据/事件作为负测，不创建正式交易，不加入可绕过生产模式校验的配置开关。
-- [ ] **Step 5: 保存脱敏证据并提交。** 输出 `artifacts/gates/deployment.json`、资源清单差异、migration 记录、会话持续有效及 webhook 验签结论；先本地 PASS，再云端 PASS。步骤 2 的版本组合在任务 2 冻结后，受影响的登录/会话与重建用例必须复跑。
+- [x] **Step 4: 在独立验证资源上执行。** 命令：`npm run probe:deployment -- --cloud`。Cloudflare 使用一次性验证应用的真实 dev/prod 资源，绝不修改既有环境；Stripe 同步器在两个独立 Sandbox 验证并记录覆盖范围，正式模式拒绝测试凭据/事件作为负测，不创建正式交易，不加入可绕过生产模式校验的配置开关。
+- [x] **Step 5: 保存脱敏证据并提交。** 输出 `artifacts/gates/deployment.json`、资源清单差异、migration 记录、会话持续有效及 webhook 验签结论；先本地 PASS，再云端 PASS。步骤 2 的版本组合在任务 2 冻结后，受影响的登录/会话与重建用例必须复跑。
 
 **Pass:** 所有资源归属正确，重复发布不新建既有资源、不轮换认证 secret、不丢数据；同一付款初始化可恢复。云环境缺失或 Stripe 仅用 mock 时为 blocked，不是 pass。
 
@@ -116,11 +118,11 @@
 - Produces: `runBudgetProtocolProbe(options: ProbeOptions): Promise<GateReport>`；冻结模型 ID、provider、AI SDK、assistant-ui 适配包、Better Auth、哈希参数和 lockfile。
 - 探针仅有一页聊天、读取工具、确认修改工具、历史接口和一个真实模型 Workflow step。
 
-- [ ] **Step 1: 写组合协议失败用例。** `streams_text_and_tool_parts`、`continues_after_confirmed_tool`、`does_not_execute_rejected_tool`、`reloads_history_without_new_generation`、`cancel_does_not_reopen_run`；命令：`npm run probe:budget-protocol -- --local`，预期先失败。
-- [ ] **Step 2: 冻结真实兼容版本。** 根据当前官方兼容表和实际 peer dependencies 选择精确版本；先验证编译和工具协议，再写 `probes/versions.json`。不能把旧版 assistant-ui 适配包与新版 AI SDK 混装，也不能只运行 Workers AI 文本流示例就算通过。[assistant-ui 兼容说明](https://www.assistant-ui.com/docs/runtimes/ai-sdk/overview)、[Workers AI SDK 接入](https://developers.cloudflare.com/workers-ai/configuration/ai-sdk/)
+- [x] **Step 1: 写组合协议失败用例。** `streams_text_and_tool_parts`、`continues_after_confirmed_tool`、`does_not_execute_rejected_tool`、`reloads_history_without_new_generation`、`cancel_does_not_reopen_run`；命令：`npm run probe:budget-protocol -- --local`，预期先失败。
+- [x] **Step 2: 冻结真实兼容版本。** 根据当前官方兼容表和实际 peer dependencies 选择精确版本；先验证编译和工具协议，再写 `probes/versions.json`。不能把旧版 assistant-ui 适配包与新版 AI SDK 混装，也不能只运行 Workers AI 文本流示例就算通过。[assistant-ui 兼容说明](https://www.assistant-ui.com/docs/runtimes/ai-sdk/overview)、[Workers AI SDK 接入](https://developers.cloudflare.com/workers-ai/configuration/ai-sdk/)
 - [ ] **Step 3: 配置云端测量并执行真实调用。** 命令：`npm run probe:budget-protocol -- --cloud`。测注册/登录、会话、Stripe 原始体验签、模型流处理、工具循环及 Workflow CPU；典型和最大允许输入各至少 20 次，另记新部署首请求。记录 `inputBytes`、输出上限、工具轮数、hash 参数和配置 CPU limit。
-- [ ] **Step 4: 判定运行计划。** 导出 Cloudflare CPU、墙钟、outcome 和模型真实用量，统计 p50/p95/max。Free 有超限则该配置 fail；不降低密码哈希安全参数。若采用 Paid，用户完成账户计划准备后，在实际 Paid 配置重跑全部受影响用例，只有实测结果才能放行。
-- [ ] **Step 5: 提交冻结记录和脱敏结论。** 输出 `artifacts/gates/budget-protocol.json`、版本/模型组合、用量摘要与浏览器协议断言。复跑任务 1 受版本与运行计划影响的用例；将选定目标写入 `docs/validation/runtime-baseline.md`。
+- [x] **Step 4: 判定运行计划。** 导出 Cloudflare CPU、墙钟、outcome 和模型真实用量，统计 p50/p95/max。Free 有超限则该配置 fail；不降低密码哈希安全参数。若采用 Paid，用户完成账户计划准备后，在实际 Paid 配置重跑全部受影响用例，只有实测结果才能放行。
+- [x] **Step 5: 提交冻结记录和脱敏结论。** 输出 `artifacts/gates/budget-protocol.json`、版本/模型组合、用量摘要与浏览器协议断言。复跑任务 1 受版本与运行计划影响的用例；将选定目标写入 `docs/validation/runtime-baseline.md`。
 
 **Pass:** 锁定的真实模型完成流、工具、确认及历史链路；所选计划无 CPU 超限或异常 outcome，p95 不超过配置 CPU 上限的 80%，最大输入被明确界定。测试输入过小而不能代表模板上限时不放行。
 
@@ -138,11 +140,11 @@
 - HTTP：创建运行 `{operationId}`、确认 `{operationId, expectedVersion}`、取消、状态查询；同一 operation/run 稳定关联一个 Workflow 实例。
 - 最小 D1 表：`runs`、`outbox`、`results`、`usage_reservations`、`usage_entries`；同一 batch/条件更新提交状态与业务效果。
 
-- [ ] **Step 1: 写故障断言并观察失败。** `recovers_after_commit_before_dispatch`、`deduplicates_instance_after_ack_lost`、`handles_early_duplicate_and_expired_confirmation`；命令：`npm run probe:recovery -- --local`。
-- [ ] **Step 2: 冻结探针结算规则并实现最小恢复。** 探针用固定测试单位，不宣称是真实套餐定价；每个已完成逻辑步骤最多扣一次单位，未完成步骤释放预占，供应商各次 attempt 成本单独记账。创建/确认先原子保存状态与 outbox，Scheduled 补投，按稳定实例 ID 去重；故障开关仅限受保护探针环境。
-- [ ] **Step 3: 执行取消竞争。** `cancel_wins_without_result`、`success_wins_rejects_late_cancel`、`concurrent_cancel_and_commit_is_atomic` 各重复至少 20 次。再测崩溃后 lease 到期回收、重复 Scheduled、Workflow 重试和用户等待确认超时。
-- [ ] **Step 4: 云端验证。** 命令：`npm run probe:recovery -- --cloud`；Scheduled 每分钟一次、每批最多 20 个事件，单用例恢复在两个调度周期加 30 秒容差内完成。真实运行 Workflow/D1/调度，供应商可用确定性替身注入失败；任务 2 另行证明真实模型，不以替身证明模型可用。
-- [ ] **Step 5: 导出并提交结论。** `artifacts/gates/recovery.json` 保存事件时间线、实例 ID、SQL 断言及配额守恒结果；每运行最多一份业务结果，终态不重开，预占最终释放/结算，重试不重复扣量。
+- [x] **Step 1: 写故障断言并观察失败。** `recovers_after_commit_before_dispatch`、`deduplicates_instance_after_ack_lost`、`handles_early_duplicate_and_expired_confirmation`；命令：`npm run probe:recovery -- --local`。
+- [x] **Step 2: 冻结探针结算规则并实现最小恢复。** 探针用固定测试单位，不宣称是真实套餐定价；每个已完成逻辑步骤最多扣一次单位，未完成步骤释放预占，供应商各次 attempt 成本单独记账。创建/确认先原子保存状态与 outbox，Scheduled 补投，按稳定实例 ID 去重；故障开关仅限受保护探针环境。
+- [x] **Step 3: 执行取消竞争。** `cancel_wins_without_result`、`success_wins_rejects_late_cancel`、`concurrent_cancel_and_commit_is_atomic` 各重复至少 20 次。再测崩溃后 lease 到期回收、重复 Scheduled、Workflow 重试和用户等待确认超时。
+- [x] **Step 4: 云端验证。** 命令：`npm run probe:recovery -- --cloud`；Scheduled 每分钟一次、每批最多 20 个事件，单用例恢复在两个调度周期加 30 秒容差内完成。真实运行 Workflow/D1/调度，供应商可用确定性替身注入失败；任务 2 另行证明真实模型，不以替身证明模型可用。
+- [x] **Step 5: 导出并提交结论。** `artifacts/gates/recovery.json` 保存事件时间线、实例 ID、SQL 断言及配额守恒结果；每运行最多一份业务结果，终态不重开，预占最终释放/结算，重试不重复扣量。
 
 **Pass:** 所有故障和竞争用例通过，资源最终可回收，供应商尝试成本与用户扣量分开记录；取消成功不能有迟到业务提交。
 
@@ -158,11 +160,11 @@
 - Consumes: 三个 `GateReport`、`probes/versions.json` 与 lockfile。
 - Produces: `npm run verify:gate -- --evidence-dir artifacts/gates`；全部通过返回 0，否则非 0。
 
-- [ ] **Step 1: 先验证门禁会拒绝伪通过。** 用例覆盖 missing/not_run/skipped/blocked/fail、无云 ID、无证据文件、版本或配置不匹配；命令：`node --test tests/gates/verify-gate.test.mjs`，先失败再实现。
-- [ ] **Step 2: 实现门禁。** 每份报告记录被测代码提交及其工作树清洁状态，独立记录共同 lockfile/版本/目标计划指纹；代码提交允许因顺序实施而不同，但三项证据必须覆盖当前相关代码，不接受相关路径已变更的旧证据。失败不得通过修改报告状态消除。
+- [x] **Step 1: 先验证门禁会拒绝伪通过。** 用例覆盖 missing/not_run/skipped/blocked/fail、无云 ID、无证据文件、版本或配置不匹配；命令：`node --test tests/gates/verify-gate.test.mjs`，先失败再实现。
+- [x] **Step 2: 实现门禁。** 每份报告记录被测代码提交及其工作树清洁状态，独立记录共同 lockfile/版本/目标计划指纹；代码提交允许因顺序实施而不同，但三项证据必须覆盖当前相关代码，不接受相关路径已变更的旧证据。失败不得通过修改报告状态消除。
 - [ ] **Step 3: 执行三项云探针和门禁。** 依次运行任务 1–3 的 cloud 命令，再运行 `npm run verify:gate -- --evidence-dir artifacts/gates`，预期三项 pass 且退出 0。
-- [ ] **Step 4: 固化结论。** 摘要包含选定依赖/模型/计划、允许输入上限、实际费用、覆盖范围、未验证的正式收款事项及证据摘要。原始日志、Cookie 和 secret 不入库；公开摘要由人工检查脱敏。
-- [ ] **Step 5: 提交阶段一结果。** 任一失败则修复、复测并更新对应设计决策；全部通过后才允许执行任务 5。若失败要求改数据库、认证或运行平台，应先回到设计评审，不静默扩大架构。
+- [x] **Step 4: 固化结论。** 摘要包含选定依赖/模型/计划、允许输入上限、实际费用、覆盖范围、未验证的正式收款事项及证据摘要。原始日志、Cookie 和 secret 不入库；公开摘要由人工检查脱敏。
+- [x] **Step 5: 提交阶段一结果。** 任一失败则修复、复测并更新对应设计决策；全部通过后才允许执行任务 5。若失败要求改数据库、认证或运行平台，应先回到设计评审，不静默扩大架构。
 
 ## 阶段二 公共应用模板
 

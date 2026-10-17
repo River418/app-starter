@@ -2,7 +2,7 @@
 
 An independent, open-source starter for validating web and agent applications with a small amount of configuration on Cloudflare.
 
-**Status: Phase 1 probes; Phase 2 deferred by the user.** The application template has not been implemented. Workers Free has failed the default Better Auth password CPU budget. The user chose to retain the design and finish the other probes before revisiting template construction. [Current validation status](docs/validation/current-status.md).
+**Status: Phase 1 evidence collected; Phase 2 deferred by the user.** The application template has not been implemented. Deployment, real model/browser protocol, and recovery probes passed their recorded scope. Workers Free failed the default Better Auth password CPU budget, so the combined admission gate remains closed. [Validation results](docs/validation/phase-one-summary.md).
 
 ## Design
 

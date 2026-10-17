@@ -42,3 +42,5 @@ npm run verify:gate
 原始 Tail、Cookie、签名、Playwright trace 和 API 证据仅存于忽略的 `artifacts/`、`.local/`。报告在 `artifacts/gates/`，公开结论只放经脱敏的 `docs/validation/`。缺少真实证据、源码变化或未执行用例均不能当作 pass。
 
 阶段二在用户明确暂缓后保持未开始。Stripe Sandbox 同步/改价按用户豁免保持未验证；正式收款、付费额度和产品 Agent 闭环属于后续阶段。
+
+本轮采集结束后已停用两个临时 Worker 的远程 Cron。再次复测前，先重新执行上面的 dev/prod 发布命令；Wrangler 配置会恢复每分钟 Cron。完成验证和结算后可在 Cloudflare 控制台移除这两个专用探针 Worker 的 Cron，避免持续运行测试维护。不要删除或重置已有数据来绕过失败；模型 40 个生成请求的安全上限是本探针资源的累计上限。

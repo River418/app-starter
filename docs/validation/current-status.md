@@ -1,11 +1,14 @@
 # 当前执行状态
 
-2026-10-17：用户选择保持 Workers Free、保留现有 Better Auth 邮箱密码设计，先完成其余探针并暂缓阶段二。仓库目前只有验证工具，没有应用模板。
+阶段一其余探针已执行，阶段二按用户要求暂缓。当前只有独立验证工具，没有应用模板。
 
-Cloudflare 已成功创建并部署隔离的 dev/prod D1、私有 R2 和最小 Workflow。真实 Tail 返回默认 scrypt 登录 CPU 135–165ms，注册 136–199ms；会话首次访问 83ms、后续 10–16ms。初步采样 15 次、成功关联 14 条 trace，缺失值未补零。这是诊断数据，不满足完整预算样本要求，也不能作为通过证据。
+- Cloudflare 重复部署及隔离：通过批准范围；Stripe 两项按用户豁免，支付仍未验证。
+- 真实模型、assistant-ui 浏览器协议及模型 Workflow：7 项通过，包含已注明的 provider 薄适配。
+- 恢复、取消和结算：13 项通过，60 次竞争。
+- Free CPU：默认 Better Auth 哈希实测超 10ms，预算 Gate 失败；完整边界压测未运行。
 
-Cloudflare 设置 API 同时返回错误 100328，明确此账户为 Free，不能配置更高 CPU 限额。HTTP 成功不代表满足免费档 CPU 预算：当前认证组合无法满足 10ms 上限，预算 Gate 保持失败。没有降低哈希参数、购买 Paid 或启动阶段二。
+[完整结论](./phase-one-summary.md) · [脱敏机器结果](./2026-10-17-phase-one-results.json) · [运行方法](./running-probes.md)
 
-用户另行明确豁免 Stripe Sandbox 云验证；豁免范围见 [approved-exceptions.json](./approved-exceptions.json)。支付能力保持尚未验证，不具备正式收款验收结论。
+被测源码：`bb4ef7384be8953599ae7b34ca964001d392b4f3`。不把用户豁免、缺失样本或未执行项目记成通过；没有升级套餐、降低哈希或搭建阶段二模板。
 
-正在继续资源重复发布、真实模型/UI 协议及 Workflow/outbox/取消/配额守恒验证。原始证据仅存于忽略的 `artifacts/`，公开结果必须关联实际被测提交并明确覆盖范围。
+临时 Worker 的远程 Cron 已在采集和结算完成后停用，资源保留。再次运行恢复探针前需重新发布恢复 Cron。

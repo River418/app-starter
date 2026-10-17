@@ -1,0 +1,327 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-17",
+  "testedCommit": "bb4ef7384be8953599ae7b34ca964001d392b4f3",
+  "platformPlan": "free",
+  "lockfileSha256": "15265fa88be9ff2f9f7d71bc8d8a0bb18528b08feb3271a42b8abf53a80bf872",
+  "versionsSha256": "b3f9f8529638efcc0352d2b9b835cc2c04af5c1682e1788f7471f582f644e1d4",
+  "phaseOneReady": false,
+  "phaseTwo": "deferred_by_user",
+  "deployment": {
+    "status": "pass_with_approved_stripe_exception",
+    "passed": [
+      "environment-isolation",
+      "resource-reuse",
+      "session-continuity",
+      "migration-once",
+      "lost-response-recovery",
+      "unknown-signing-secret-not-ready"
+    ],
+    "waived": [
+      "stripe-sandbox-reuse",
+      "price-versioning"
+    ],
+    "paymentValidation": "unverified",
+    "executedAt": "2026-10-17T10:17:12.368Z"
+  },
+  "protocol": {
+    "status": "functional_pass",
+    "model": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+    "passed": [
+      "text-stream",
+      "reload-history",
+      "read-tool",
+      "confirmed-write",
+      "rejected-write",
+      "cancel",
+      "model-workflow"
+    ],
+    "browserTests": 5,
+    "providerAdapter": "workers-ai-provider@4.0.0 plus probe-owned single-dialect normalization",
+    "limits": {
+      "authBodyBytes": 4096,
+      "webhookBodyBytes": 16384,
+      "userMessageBytes": 2048,
+      "historyBytes": 16384,
+      "outputTokens": 128,
+      "cancelOutputTokens": 512,
+      "workflowOutputTokens": 32,
+      "toolSteps": 3,
+      "generationRequests": 40
+    },
+    "executedAt": "2026-10-17T10:10:45.935Z"
+  },
+  "cpu": {
+    "status": "fail",
+    "limitMs": 10,
+    "p95TargetMs": 8,
+    "scope": "Five typical diagnostics per operation; maximum/cold/full-model boundary benchmark not run on rejected Free baseline",
+    "requested": 20,
+    "correlated": 11,
+    "ranges": {
+      "registration": {
+        "samples": 4,
+        "minMs": 136,
+        "maxMs": 161
+      },
+      "login": {
+        "samples": 4,
+        "minMs": 67,
+        "maxMs": 128
+      },
+      "session": {
+        "samples": 2,
+        "minMs": 7,
+        "maxMs": 7
+      },
+      "webhook": {
+        "samples": 1,
+        "minMs": 1,
+        "maxMs": 1
+      }
+    },
+    "metrics": [
+      {
+        "name": "registration",
+        "limitMs": 10,
+        "p95Ms": 161,
+        "maxMs": 161,
+        "sampleCounts": {
+          "typical": 4,
+          "maximum": 0,
+          "cold": 0
+        },
+        "outcomes": [
+          "ok"
+        ]
+      },
+      {
+        "name": "login",
+        "limitMs": 10,
+        "p95Ms": 128,
+        "maxMs": 128,
+        "sampleCounts": {
+          "typical": 4,
+          "maximum": 0,
+          "cold": 0
+        },
+        "outcomes": [
+          "ok"
+        ]
+      },
+      {
+        "name": "session",
+        "limitMs": 10,
+        "p95Ms": 7,
+        "maxMs": 7,
+        "sampleCounts": {
+          "typical": 2,
+          "maximum": 0,
+          "cold": 0
+        },
+        "outcomes": [
+          "ok"
+        ]
+      },
+      {
+        "name": "webhook",
+        "limitMs": 10,
+        "p95Ms": 1,
+        "maxMs": 1,
+        "sampleCounts": {
+          "typical": 1,
+          "maximum": 0,
+          "cold": 0
+        },
+        "outcomes": [
+          "ok"
+        ]
+      }
+    ]
+  },
+  "recovery": {
+    "status": "pass",
+    "cases": [
+      "commit-before-dispatch",
+      "instance-ack-lost",
+      "early-confirmation",
+      "duplicate-confirmation",
+      "expired-confirmation",
+      "cancel-wins",
+      "success-wins",
+      "cancel-commit-race",
+      "lease-recovery",
+      "duplicate-scheduler",
+      "retry-budget",
+      "confirmation-timeout",
+      "usage-conservation"
+    ],
+    "races": 60,
+    "raceSamplesPerBoundary": 20,
+    "scheduledInvocations": [
+      {
+        "at": 1792231799258,
+        "outcome": "ok",
+        "cpuTimeMs": 2,
+        "wallTimeMs": 25
+      },
+      {
+        "at": 1792231858663,
+        "outcome": "ok",
+        "cpuTimeMs": 5,
+        "wallTimeMs": 640
+      },
+      {
+        "at": 1792231918883,
+        "outcome": "ok",
+        "cpuTimeMs": 6,
+        "wallTimeMs": 891
+      },
+      {
+        "at": 1792231978861,
+        "outcome": "ok",
+        "cpuTimeMs": 2,
+        "wallTimeMs": 98
+      },
+      {
+        "at": 1792232038743,
+        "outcome": "ok",
+        "cpuTimeMs": 1,
+        "wallTimeMs": 85
+      }
+    ],
+    "provider": "deterministic failure injection; real Workflow/D1/Cron",
+    "executedAt": "2026-10-17T10:14:06.180Z"
+  },
+  "usage": {
+    "knownChatInputTokens": 1462,
+    "knownChatOutputTokens": 160,
+    "unknownChatRuns": 1,
+    "billing": "Actual invoice/neuron billing not available; these are known returned usage only, not total charges or a zero-cost assertion"
+  },
+  "verification": {
+    "localTests": 61,
+    "gateTests": 23,
+    "helperTests": 7,
+    "workerdTests": 31,
+    "serverAndClientTypeChecks": "pass",
+    "cloudGateExit": 1
+  },
+  "evidence": [
+    {
+      "gate": "deployment",
+      "status": "pass",
+      "executedAt": "2026-10-17T10:17:12.368Z",
+      "files": [
+        {
+          "source": "cloudflare",
+          "role": null,
+          "sha256": "4d46e3d91bd319f82dd1b4d57b217d4d0622a7249ecf5a3a6cb01890a4cb00a1"
+        },
+        {
+          "source": "cloudflare",
+          "role": null,
+          "sha256": "6a28451daf4e7176734a42f37855a06bb60c74d5dd4a97b33d142e9277af11c9"
+        },
+        {
+          "source": "cloudflare",
+          "role": "requests",
+          "sha256": "c8247658ba601498ddaf2f58f5b535f0d6beadc215f79731445921caf9c2c22e"
+        },
+        {
+          "source": "probe",
+          "role": "assertion-verdict",
+          "sha256": "f7b6f333b6fc2e728a5b597193861d1349126a94a3028a1769c0f798f5c15814"
+        }
+      ]
+    },
+    {
+      "gate": "budget-protocol",
+      "status": "fail",
+      "executedAt": "2026-10-17T10:10:45.935Z",
+      "files": [
+        {
+          "source": "cloudflare",
+          "role": "tail",
+          "sha256": "8d86aa60648e380870a755c3f8902a38d57d2a5969f6543050544887c219ff38"
+        },
+        {
+          "source": "cloudflare",
+          "role": "cpu-samples",
+          "sha256": "f681c9d1f77a80fa0c2a3de9e1cc9b0cd8d4958ec1e64c3409ddfe7625617883"
+        },
+        {
+          "source": "browser",
+          "role": "browser",
+          "sha256": "e32ef6bb3faf83cb34e5044207269f63e502ed78b2ec6d59e2dca9e8d19e3738"
+        },
+        {
+          "source": "cloudflare",
+          "role": "threads",
+          "sha256": "9bad3ca7a2010ed34f96f42acc6ca8bbb54e3cd676c0f05cbb8e73165314f43f"
+        },
+        {
+          "source": "cloudflare",
+          "role": "requests",
+          "sha256": "6eb2ae984239941f52e4a6071e86a3b10f4573915f5fbd09a623869f44ff9bf2"
+        },
+        {
+          "source": "probe",
+          "role": "assertion-verdict",
+          "sha256": "ae36b41cfd4c32c62f1176705f3ac7ae2ddd8c06a1bda8c74e0c5b4ed166b3f1"
+        }
+      ]
+    },
+    {
+      "gate": "recovery",
+      "status": "pass",
+      "executedAt": "2026-10-17T10:14:06.180Z",
+      "files": [
+        {
+          "source": "cloudflare",
+          "role": null,
+          "sha256": "adbf90ee0deb2685cad17111bed5d516772c23d5813128dae966dd067b115bcd"
+        },
+        {
+          "source": "cloudflare",
+          "role": "requests",
+          "sha256": "0ed1bc7b1d9f0aaa1b032cff48b5e26fa8b3da5cc9f5562907810e03d1f11e1e"
+        },
+        {
+          "source": "probe",
+          "role": "assertion-verdict",
+          "sha256": "8419301f725a5ca34bdc79f80044d5b17cba7601ce42256434d21e8eb7b47a14"
+        }
+      ]
+    }
+  ],
+  "lifecycle": {
+    "cronPausedAfterMeasurement": [
+      {
+        "environment": "dev",
+        "name": "cfas-probe-418-20261017-dev",
+        "before": 1,
+        "after": 0,
+        "at": "2026-10-17T10:18:04.734Z"
+      },
+      {
+        "environment": "prod",
+        "name": "cfas-probe-418-20261017-prod",
+        "before": 1,
+        "after": 0,
+        "at": "2026-10-17T10:18:06.058Z"
+      }
+    ],
+    "activeRuns": 0,
+    "unsettledReservations": 0,
+    "activeChats": 0,
+    "resourcesRetained": true,
+    "retest": "Redeploy both probe environments to restore configured Cron before rerunning recovery"
+  },
+  "review": {
+    "unresolvedCritical": 0,
+    "unresolvedImportant": 0,
+    "scope": "Phase-one probe code and filtered actual evidence; no separate cloud rerun",
+    "overallAdmission": "not_passed"
+  }
+}
