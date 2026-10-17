@@ -245,3 +245,11 @@ test('cannot hide a failed deployment or recovery measurement by changing only t
   assert.match(result.stderr,/deployment:.*measurement verdict/);
   assert.match(result.stderr,/recovery:.*measurement verdict/);
 });
+
+test('does not use copied verdict IDs as proof of cloud observations', t => {
+  const f = fixture(t), entry = f.reports.deployment.evidence.find(e => e.source === 'cloudflare');
+  const raw = JSON.stringify({ provider: 'cloudflare', fixture: true });
+  writeFileSync(path.join(f.root,entry.path),raw); entry.sha256 = hash(raw); f.save();
+  const result = f.run(); assert.equal(result.status,1);
+  assert.match(result.stderr,/identifiers absent from actual evidence/);
+});

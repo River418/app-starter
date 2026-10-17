@@ -93,7 +93,7 @@ export function verifyReports(root, directory) {
       if (verdict.status !== 'pass' || ['gate','sourceCommit','environment','platformPlan','status','cases','blockers'].some(key => JSON.stringify(verdict[key]) !== JSON.stringify(report[key]))) throw Error();
     } catch { fail(gate, 'measurement verdict missing, failed or disagrees with report'); }
     const collect = v => { if (typeof v === 'string') observedIds.add(v); else if (v && typeof v === 'object') Object.values(v).forEach(collect); };
-    for (const entry of verified) { try { collect(JSON.parse(entry.raw)); } catch { collect(parseTailFrames(entry.raw)); } }
+    for (const entry of verified.filter(e => e.role !== 'assertion-verdict' && ['cloudflare','browser','stripe'].includes(e.source))) { try { collect(JSON.parse(entry.raw)); } catch { collect(parseTailFrames(entry.raw)); } }
     for (const entry of found) if (entry.status === 'pass' && !entry.cloudIds?.some(id => observedIds.has(id))) fail(gate, `case ${entry.id} identifiers absent from actual evidence`);
     if (gate === 'deployment' && report.stripeMode !== 'waived') {
       if (report.stripeMode !== 'sandbox' || !Array.isArray(report.stripeAccounts) || report.stripeAccounts.length !== 2 || new Set(report.stripeAccounts).size !== 2) fail(gate, 'two isolated Stripe Sandboxes required');
