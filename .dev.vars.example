@@ -1,3 +1,5 @@
-# Copy to .dev.vars. Never commit real values or paste them into chat.
-STRIPE_PROBE_A_SECRET_KEY=
-STRIPE_PROBE_B_SECRET_KEY=
+# Use a separate hosted DEV Supabase project, or npm run auth:local:start.
+# Never put the secret key in app.config.ts, VITE_* variables or source control.
+SUPABASE_URL="http://127.0.0.1:55321"
+SUPABASE_PUBLISHABLE_KEY=""
+SUPABASE_SECRET_KEY=""

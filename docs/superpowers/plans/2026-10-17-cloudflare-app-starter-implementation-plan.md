@@ -1,5 +1,6 @@
 # Cloudflare App Starter Implementation Plan
 
+> 用户已批准第二阶段变更：[app-starter / Supabase Auth 修订](../specs/2026-10-17-phase-two-auth-amendment.md)。第二阶段以此修订为准；历史 CPU 证据不变。
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** 在独立开源仓库交付一套少配置的 Web 与 Agent 模板，先通过三个真实验证门槛，再搭建模板。
@@ -180,11 +181,11 @@
 - Consumes: 通过的阶段一结论；复用已证明的原生资源准备顺序。
 - Produces: `AppConfig`（slug/title/preset、可选 billing）、`readPublicConfig(config)` 的公开白名单，以及 dev/deploy:dev/deploy:prod 命令。`DeploymentContext` 固定目标 account、环境、preset 和资源映射；`assertPresetTransition(context): Promise<void>` 在危险切换时拒绝发布。
 
-- [ ] 写失败断言：`client_cannot_import_server`、`web_build_has_no_agent_or_workflow`、`unknown_api_returns_json`、`spa_deep_link_refreshes`、`build_and_migration_share_d1`；`refuses_agent_to_web_with_active_runs` 用状态读取替身验证部署拒绝契约，任务 11 接通真实数据验收。
-- [ ] 运行 `npm run test:build`，观察缺实现导致失败。
-- [ ] 实现模板入口与薄脚本；前端先构建，远程 migration 只在构建成功后运行；secret 不进入公开配置；资源 ID 持久化到源配置。Agent→Web 切换必须先停止接收新运行，再确认无活动运行、待投递事件和未结算预占；条件不满足时保留现有 Agent 版本，不自动删资源。
-- [ ] 运行 `npm run type-check`、`npm run test:build`、`npm run test:integration -- deployment`，再对临时 dev/prod 资源验证同一流程和重复发布。
-- [ ] 提交配置与构建闭环；模板运行时不得 import 探针实现。
+- [x] 写失败断言：`client_cannot_import_server`、`web_build_has_no_agent_or_workflow`、`unknown_api_returns_json`、`spa_deep_link_refreshes`、`build_and_migration_share_d1`；`refuses_agent_to_web_with_active_runs` 用状态读取替身验证部署拒绝契约，任务 11 接通真实数据验收。
+- [x] 运行 `npm run test:build`，观察缺实现导致失败。
+- [x] 实现模板入口与薄脚本；前端先构建，远程 migration 只在构建成功后运行；secret 不进入公开配置；资源 ID 持久化到源配置。Agent→Web 切换必须先停止接收新运行，再确认无活动运行、待投递事件和未结算预占；条件不满足时保留现有 Agent 版本，不自动删资源。
+- [x] 运行 `npm run type-check`、`npm run test:build`、`npm run test:integration -- deployment`，再对临时 dev/prod 资源验证同一流程和重复发布。
+- [x] 提交配置与构建闭环；模板运行时不得 import 探针实现。
 
 ### Task 6: 前端基础、账号与管理员初始化
 
@@ -198,11 +199,11 @@
 - Consumes: `AppConfig`、同源 API 客户端和锁定 Better Auth 版本。
 - Produces: 服务端 `requireIdentity(request, bindings)` 返回 `{userId, role}`；前端认证仅用 Better Auth，会话不复制到 Zustand。`/api/admin/users` 提供查询、邀请和受保护的账号恢复，管理员变更记录操作 ID、原因及审计日志。
 
-- [ ] 写失败用例：一次性初始化、令牌过期、邀请有效期、角色越权、普通用户不能调用管理操作、恢复操作幂等且有审计。增加 `public_signup_verifies_email_and_resets_password`、重复/过期令牌拒绝；浏览器覆盖注册→邮件验证→登录→密码重置，以及深链接、登录恢复、登出/换号清理缓存、主题、中英文及移动导航。
-- [ ] 运行 `npm run test:integration -- auth` 与 `npm run test:e2e -- auth-shell`，预期先失败。
-- [ ] 实现 shadcn/Radix 基础、React Router Data 布局、Query/RHF/Zod 规则及身份持久化；Better Auth schema 纳入 Drizzle/D1 migration，启动只检查版本。实现用户管理和公开模式页面；默认邀请模式无邮件前置，公开模式缺 Resend 配置时拒绝发布。
-- [ ] 运行上述测试与 type-check；邮件测试通过后端 Resend 替身提取令牌，但保留实际验证/重置 API、数据库及 Cookie 链路。在目标云计划复核登录 CPU，无 secret 输出；启用公开模式的云环境还须执行真实邮件冒烟。
-- [ ] 提交可登录的应用工作台；复制第三方组件时保留许可证。
+- [x] 写失败用例：一次性初始化、令牌过期、邀请有效期、角色越权、普通用户不能调用管理操作、恢复操作幂等且有审计。增加 `public_signup_verifies_email_and_resets_password`、重复/过期令牌拒绝；浏览器覆盖注册→邮件验证→登录→密码重置，以及深链接、登录恢复、登出/换号清理缓存、主题、中英文及移动导航。
+- [x] 运行 `npm run test:integration -- auth` 与 `npm run test:e2e -- auth-shell`，预期先失败。
+- [x] 实现 shadcn/Radix 基础、React Router Data 布局、Query/RHF/Zod 规则及身份持久化；Better Auth schema 纳入 Drizzle/D1 migration，启动只检查版本。实现用户管理和公开模式页面；默认邀请模式无邮件前置，公开模式缺 Resend 配置时拒绝发布。
+- [x] 运行上述测试与 type-check；邮件测试通过后端 Resend 替身提取令牌，但保留实际验证/重置 API、数据库及 Cookie 链路。在目标云计划复核登录 CPU，无 secret 输出；启用公开模式的云环境还须执行真实邮件冒烟。
+- [x] 提交可登录的应用工作台；复制第三方组件时保留许可证。
 
 ### Task 7: 业务记录与私有文件
 
@@ -214,11 +215,14 @@
 - Consumes: `requireIdentity`、QueryClient 和私有 R2 binding。
 - Produces: `/api/records` 的分页 CRUD，`/api/files` 的上传/下载/删除；DTO 带 owner 校验，文件响应不暴露公共 bucket 权限。
 
-- [ ] 写失败用例：分页/筛选 URL 恢复、两个用户互访拒绝、超限文件拒绝、上传后绑定失败清理、重复删除。
-- [ ] 运行 `npm run test:integration -- records-files`，确认失败场景确实命中后端。
-- [ ] 实现 feature 两侧代码、条件 SQL/唯一约束、服务端大小限制和孤立文件清理；清理失败进入有批次上限的公共维护 handler 重试，后续支付与 Agent 复用该 Scheduled handler。局部 UI 不新建全局 store。
-- [ ] 运行目标 integration/e2e、type-check，并验证普通 Web 配置不创建 AI/Workflow 资源。
-- [ ] 提交完整 Web 示例。
+- [x] 写失败用例：分页/筛选 URL 恢复、两个用户互访拒绝、超限文件拒绝、上传后绑定失败清理、重复删除。
+- [x] 运行 `npm run test:integration -- records-files`，确认失败场景确实命中后端。
+- [x] 实现 feature 两侧代码、条件 SQL/唯一约束、服务端大小限制和孤立文件清理；清理失败进入有批次上限的公共维护 handler 重试，后续支付与 Agent 复用该 Scheduled handler。局部 UI 不新建全局 store。
+- [x] 运行目标 integration/e2e、type-check，并验证普通 Web 配置不创建 AI/Workflow 资源。
+- [x] 提交完整 Web 示例。
+
+
+Phase 2 acceptance amendment: hosted Supabase credentials were deferred by the user. Auth/email pass on official local Supabase/Postgres/Mailpit; cloud acceptance is restricted to anonymous dev/prod deployment, routing, isolation and retained infrastructure fixtures. Hosted auth/email and new auth CPU limits remain unverified. Supabase Auth supersedes the original Better Auth/Resend steps. Historical Phase 1 Free gate stays failed.
 
 ## 阶段三 支付与权益
 

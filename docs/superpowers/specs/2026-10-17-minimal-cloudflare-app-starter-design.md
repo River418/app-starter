@@ -1,5 +1,6 @@
 # 少配置应用模板完整方案
 
+> 用户已批准第二阶段变更：[app-starter / Supabase Auth 修订](../specs/2026-10-17-phase-two-auth-amendment.md)。第二阶段以此修订为准；历史 CPU 证据不变。
 日期：2026-10-17
 
 状态：已批准的设计基线。先执行[实施计划](../plans/2026-10-17-cloudflare-app-starter-implementation-plan.md)中的三项可行性验证，通过后再搭建模板。

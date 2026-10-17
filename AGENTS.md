@@ -4,11 +4,11 @@ This is an independent open-source Cloudflare application starter. Read the desi
 
 ## Phase gates
 
-- Phase 1 evidence is recorded in docs/validation/phase-one-summary.md. The Free CPU gate failed; the application template is not implemented and Phase 2 remains locked.
-- User steering on 2026-10-17: retain the existing Better Auth design and Workers Free, complete the remaining probes, and defer Phase 2. Do not start the template without a later user instruction.
+- Phase 1 evidence is recorded in docs/validation/phase-one-summary.md. Its Better Auth Free CPU gate failed and remains historical evidence.
+- Later user instruction on 2026-10-17 explicitly resumes Phase 2 (tasks 5–7), accepts necessary platform costs, names the project app-starter, and replaces Better Auth with Supabase Auth. This supersedes the previous pause and admission gate for implementation. Payments and Agent runtime remain later phases.
 - The user explicitly waived two unavailable Stripe Sandbox checks. Only the scope recorded in `docs/validation/approved-exceptions.json` may be waived; payment validation remains unverified.
 - Phase 1 may add only the minimum disposable probes and their tooling.
-- Do not construct the application template until the deployment, CPU/protocol, and recovery gates all have passing evidence for the selected dependency commit and platform plan.
+- Measure the new authentication architecture independently; do not describe the old CPU failure as fixed without new evidence.
 - Treat not-run, skipped, failed, missing evidence, and local substitutes for cloud measurements as non-passing.
 - Re-run affected gates when platform configuration or relevant dependencies change.
 
@@ -29,3 +29,4 @@ This is an independent open-source Cloudflare application starter. Read the desi
 - Current commands: `npm test`, `npm run type-check`, `npm run verify:gate`. Keep documentation aligned with actual scripts; do not claim planned application commands already exist.
 - Local Vitest must use `remoteBindings: false`; deterministic model tests must not require a Cloudflare login or invoke a remote AI binding. Cloud probes are explicit opt-in commands.
 - Current commands additionally include `probe:build`, `probe:deployment`, `probe:budget-protocol`, and `probe:recovery`. Probe commands default to local; cloud mode requires `--cloud`.
+- Phase 2 product commands: `dev`, `build`, `deploy:dev`, `deploy:prod`, `auth:local:start`, `auth:local:stop`, `bootstrap:token`, `test:build`, `test:integration`, `test:e2e`, `test:e2e:public`. Full integration needs the isolated local Supabase stack; never point tests at hosted identity data. Run mode-switching browser suites sequentially.
