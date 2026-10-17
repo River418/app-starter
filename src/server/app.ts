@@ -44,7 +44,7 @@ app.get("/api/health", async (c) => {
     "SELECT max(version) AS version FROM schema_version",
   ).first<{ version: number }>();
   return c.json({
-    ok: version?.version === 4,
+    ok: version?.version === 5,
     environment: c.env.APP_ENV,
     schemaVersion: version?.version,
   });
