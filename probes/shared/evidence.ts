@@ -3,7 +3,7 @@ export type GateStatus = 'not_run' | 'pass' | 'fail' | 'blocked';
 
 export interface GateCase {
   id: string;
-  status: GateStatus;
+  status: GateStatus | 'waived';
   expected: string;
   actual: string;
   cloudIds: string[];
@@ -24,7 +24,9 @@ export interface GateReport {
   cases: GateCase[];
   evidence: { path: string; sha256: string; source: 'cloudflare' | 'stripe' | 'browser' }[];
   blockers?: string[];
-  stripeMode?: 'sandbox';
+  stripeMode?: 'sandbox' | 'waived';
+  stripeException?: 'stripe-sandbox-2026-10-17';
+  paymentValidation?: 'unverified';
   stripeAccounts?: string[];
   model?: string;
   samplesPerBoundary?: number;

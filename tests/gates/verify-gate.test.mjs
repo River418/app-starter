@@ -15,7 +15,7 @@ const cases = {
   recovery: ['commit-before-dispatch', 'instance-ack-lost', 'early-confirmation', 'duplicate-confirmation', 'expired-confirmation', 'cancel-wins', 'success-wins', 'cancel-commit-race', 'lease-recovery', 'duplicate-scheduler', 'retry-budget', 'confirmation-timeout', 'usage-conservation'],
 };
 
-function fixture(t) {
+function fixture(t, { stripeWaiver = false } = {}) {
   const root = mkdtempSync(path.join(tmpdir(), 'cfas-gate-'));
   t.after(() => rmSync(root, { recursive: true, force: true }));
   mkdirSync(path.join(root, 'probes'), { recursive: true });
@@ -24,6 +24,10 @@ function fixture(t) {
   writeFileSync(path.join(root, 'package-lock.json'), '{"lockfileVersion":3}\n');
   writeFileSync(path.join(root, 'probes/versions.json'), '{"schemaVersion":1,"model":"test-model"}\n');
   writeFileSync(path.join(root, 'probes/worker.ts'), 'export const value = 1;\n');
+  if (stripeWaiver) {
+    mkdirSync(path.join(root, 'docs/validation'), { recursive: true });
+    writeFileSync(path.join(root, 'docs/validation/approved-exceptions.json'), JSON.stringify({ schemaVersion: 1, exceptions: [{ id: 'stripe-sandbox-2026-10-17', gate: 'deployment', approvedBy: 'user', scope: ['stripe-sandbox-reuse', 'price-versioning'], reason: '暂时没有sandbox，可以跳过', paymentValidation: 'unverified' }] }));
+  }
   execFileSync('git', ['init', '-q', '-b', 'main'], { cwd: root });
   execFileSync('git', ['add', '.'], { cwd: root });
   execFileSync('git', ['-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid', 'commit', '-qm', 'fixture'], { cwd: root });
@@ -145,4 +149,23 @@ test('rejects a Sandbox claim without Stripe-sourced evidence', (t) => {
 test('rejects missing report without accepting other gates as completion', (t) => {
   const f = fixture(t); rmSync(path.join(f.root, 'artifacts/gates/deployment.json'));
   assert.match(f.run().stderr, /deployment: report missing/);
+});
+
+test('permits only the explicitly approved Stripe Sandbox exception and labels it unverified', (t) => {
+  const f = fixture(t, { stripeWaiver: true });
+  Object.assign(f.reports.deployment, { stripeMode: 'waived', stripeException: 'stripe-sandbox-2026-10-17', paymentValidation: 'unverified', stripeAccounts: [] });
+  f.reports.deployment.evidence = f.reports.deployment.evidence.filter(x => x.source !== 'stripe');
+  for (const entry of f.reports.deployment.cases.filter(x => ['stripe-sandbox-reuse', 'price-versioning'].includes(x.id))) { entry.status = 'waived'; entry.cloudIds = []; entry.actual = 'Not executed; explicitly waived by user'; }
+  f.save();
+  const result = f.run();
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /Stripe Sandbox unverified/);
+  f.reports.recovery.cases[0].status = 'waived'; f.save();
+  assert.match(f.run().stderr, /recovery: case.*did not pass/);
+});
+
+test('rejects an unapproved Stripe waiver or a waived check reported as verified', (t) => {
+  const f = fixture(t);
+  Object.assign(f.reports.deployment, { stripeMode: 'waived', stripeException: 'stripe-sandbox-2026-10-17', paymentValidation: 'verified' }); f.save();
+  assert.match(f.run().stderr, /Stripe exception.*not approved|Stripe exception.*unverified/);
 });

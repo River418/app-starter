@@ -11,11 +11,12 @@ const requiredCases = {
   recovery: ['commit-before-dispatch', 'instance-ack-lost', 'early-confirmation', 'duplicate-confirmation', 'expired-confirmation', 'cancel-wins', 'success-wins', 'cancel-commit-race', 'lease-recovery', 'duplicate-scheduler', 'retry-budget', 'confirmation-timeout', 'usage-conservation'],
 };
 const hash = (value) => createHash('sha256').update(value).digest('hex');
-const probePaths = ['probes', 'scripts/lib', 'scripts/probe-deployment.mjs', 'scripts/probe-budget-protocol.mjs', 'scripts/probe-recovery.mjs', 'package.json', 'package-lock.json', 'vitest.config.ts', 'tsconfig.json'];
+const probePaths = ['probes', 'scripts/lib', 'scripts/probe-deployment.mjs', 'scripts/probe-budget-protocol.mjs', 'scripts/probe-recovery.mjs', 'package.json', 'package-lock.json', 'vitest.config.ts', 'tsconfig.json', 'docs/validation/approved-exceptions.json'];
 
 export function verifyReports(root, directory) {
   root = realpathSync(root);
   const errors = [];
+  const warnings = [];
   const git = (...args) => execFileSync('git', args, { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
   const fail = (gate, reason) => errors.push(`${gate}: ${reason}`);
   for (const [gate, ids] of Object.entries(requiredCases)) {
@@ -25,6 +26,14 @@ export function verifyReports(root, directory) {
     try { report = JSON.parse(readFileSync(file, 'utf8')); }
     catch { fail(gate, 'invalid report JSON'); continue; }
     if (!report || typeof report !== 'object' || Array.isArray(report)) { fail(gate, 'invalid report object'); continue; }
+    const waivedCases = new Set();
+    if (gate === 'deployment' && report.stripeMode === 'waived') {
+      let approved;
+      try { approved = JSON.parse(readFileSync(path.join(root, 'docs/validation/approved-exceptions.json'), 'utf8')).exceptions.find(x => x.id === 'stripe-sandbox-2026-10-17'); } catch { /* checked below */ }
+      if (report.stripeException !== 'stripe-sandbox-2026-10-17' || approved?.gate !== 'deployment' || approved?.approvedBy !== 'user' || JSON.stringify(approved?.scope) !== JSON.stringify(['stripe-sandbox-reuse', 'price-versioning'])) fail(gate, 'Stripe exception is not approved');
+      else if (report.paymentValidation !== 'unverified' || approved.paymentValidation !== 'unverified') fail(gate, 'Stripe exception must remain unverified');
+      else { approved.scope.forEach(id => waivedCases.add(id)); warnings.push('Stripe Sandbox unverified: user-approved exception stripe-sandbox-2026-10-17'); }
+    }
     if (report?.schemaVersion !== 1 || report.gate !== gate) fail(gate, 'report schema mismatch');
     if (report?.status !== 'pass') fail(gate, `status ${String(report?.status)} is not pass`);
     if (report?.mode !== 'cloud') fail(gate, 'cloud execution required');
@@ -48,6 +57,10 @@ export function verifyReports(root, directory) {
       const matching = found.filter((entry) => entry.id === id);
       if (matching.length !== 1) { fail(gate, `missing case ${id} or duplicate case`); continue; }
       const entry = matching[0];
+      if (waivedCases.has(id)) {
+        if (entry.status !== 'waived' || !entry.expected || !entry.actual || entry.cloudIds?.length) fail(gate, `case ${id} must be explicitly waived without cloud claims`);
+        continue;
+      }
       if (entry.status !== 'pass') fail(gate, `case ${id} did not pass`);
       if (!entry.expected || !entry.actual) fail(gate, `case ${id} has no assertions`);
       if (!Array.isArray(entry.cloudIds) || !entry.cloudIds.some((value) => typeof value === 'string' && value.length > 0)) fail(gate, `case ${id} has no cloud identifier`);
@@ -64,7 +77,7 @@ export function verifyReports(root, directory) {
         if (hash(readFileSync(evidencePath)) !== entry.sha256) fail(gate, 'evidence checksum mismatch');
       } catch { fail(gate, 'raw evidence file missing'); }
     }
-    if (gate === 'deployment') {
+    if (gate === 'deployment' && report.stripeMode !== 'waived') {
       if (report.stripeMode !== 'sandbox' || !Array.isArray(report.stripeAccounts) || report.stripeAccounts.length !== 2 || new Set(report.stripeAccounts).size !== 2) fail(gate, 'two isolated Stripe Sandboxes required');
       if (!evidenceEntries.some((entry) => entry.source === 'stripe')) fail(gate, 'Stripe evidence required');
     }
@@ -84,12 +97,12 @@ export function verifyReports(root, directory) {
       }
     }
   }
-  return { ok: errors.length === 0, errors };
+  return { ok: errors.length === 0, errors, warnings };
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
   const { values } = parseArgs({ options: { root: { type: 'string', default: process.cwd() }, 'evidence-dir': { type: 'string', default: 'artifacts/gates' } } });
   const result = verifyReports(values.root, values['evidence-dir']);
-  if (result.ok) console.log('3/3 gates passed. Phase two may start.');
+  if (result.ok) console.log(result.warnings.length ? `3/3 gate requirements met with approved exceptions. ${result.warnings.join('; ')}. Phase two may start.` : '3/3 gates passed. Phase two may start.');
   else { for (const error of result.errors) console.error(error); process.exitCode = 1; }
 }

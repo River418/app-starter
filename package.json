@@ -7,7 +7,7 @@
     "node": ">=24.0.0"
   },
   "scripts": {
-    "test": "npm run test:gate && vitest run",
+    "test": "npm run test:gate && node --test tests/probes/*.test.mjs && vitest run",
     "test:workers": "vitest run",
     "type-check": "tsc --noEmit",
     "test:gate": "node --test tests/gates/verify-gate.test.mjs",
