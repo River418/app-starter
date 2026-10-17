@@ -25,7 +25,7 @@ export function ChatProbe({ threadId, messages, probeKey }: { threadId: string; 
   return <AssistantRuntimeProvider runtime={runtime} config={config}>
     <ThreadPrimitive.Root className="thread">
       <ThreadPrimitive.Viewport className="transcript">
-        <ThreadPrimitive.Messages>{({ message }) => <MessagePrimitive.Root className="message" data-role={message.role}><strong>{message.role}</strong><MessagePrimitive.Parts /></MessagePrimitive.Root>}</ThreadPrimitive.Messages>
+        <ThreadPrimitive.Messages>{({ message }) => <MessagePrimitive.Root className="message" data-role={message.role}><strong>{message.role}</strong><div className="message-content"><MessagePrimitive.Parts /></div></MessagePrimitive.Root>}</ThreadPrimitive.Messages>
       </ThreadPrimitive.Viewport>
       <ComposerPrimitive.Root className="composer">
         <ComposerPrimitive.Input aria-label="Message" placeholder="Send a validation request" />

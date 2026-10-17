@@ -10,8 +10,8 @@ test('missing or stale browser reporter output cannot reuse an older successful 
   t.after(() => rm(dir, { recursive: true, force: true }));
   const file = resolve(dir, 'run.json'), expected = { runId: 'current', sourceCommit: 'commit', model: 'model' };
   assert.equal(await loadBrowserReport(file, expected), null);
-  await writeFile(file, JSON.stringify({ metadata: { ...expected, runId: 'old' }, suites: [] }));
+  await writeFile(file, JSON.stringify({ config: { metadata: { ...expected, runId: 'old' } }, suites: [] }));
   await assert.rejects(loadBrowserReport(file, expected), /different run/);
-  await writeFile(file, JSON.stringify({ metadata: expected, suites: [] }));
-  assert.deepEqual((await loadBrowserReport(file, expected)).metadata, expected);
+  await writeFile(file, JSON.stringify({ config: { metadata: expected }, suites: [] }));
+  assert.deepEqual((await loadBrowserReport(file, expected)).config.metadata, expected);
 });

@@ -75,7 +75,7 @@ function fixture(t, { stripeWaiver = false } = {}) {
       const titles = ['streams text', 'renders a real read', 'asks for approval', 'denies a proposed', 'aborts the browser'];
       const ids = ['text-stream', 'read-tool', 'confirmed-write', 'rejected-write', 'cancel'];
       report.cases.find(c => c.id === 'reload-history').cloudIds = ['fixture-text-stream'];
-      add('browser', { metadata: { sourceCommit, runId: 'fixture-run', model: 'test-model' }, suites: [{ specs: titles.map((title,i) => ({ title, tests: [{ annotations: [{ type: 'cloud-thread', description: `fixture-${ids[i]}` }], results: [{ status: 'passed' }] }] })) }] }, 'browser');
+      add('browser', { config: { metadata: { sourceCommit, runId: 'fixture-run', model: 'test-model' } }, suites: [{ specs: titles.map((title,i) => ({ title, tests: [{ annotations: [{ type: 'cloud-thread', description: `fixture-${ids[i]}` }], results: [{ status: 'passed' }] }] })) }] }, 'browser');
       add('threads', ids.map(id => ({ thread: { id: `fixture-${id}` } })));
     }
   }

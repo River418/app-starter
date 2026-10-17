@@ -142,7 +142,7 @@ function verifyBudgetEvidence(report, evidence, fail) {
     }
   }
   const browser = read('browser'), threads = read('threads');
-  if (!browser || browser.metadata?.sourceCommit !== report.sourceCommit || browser.metadata?.runId !== report.runId || !report.runId || browser.metadata?.model !== report.model || !Array.isArray(threads)) { fail('fresh browser evidence missing or source/run/model differs'); return; }
+  if (!browser || browser.config?.metadata?.sourceCommit !== report.sourceCommit || browser.config?.metadata?.runId !== report.runId || !report.runId || browser.config?.metadata?.model !== report.model || !Array.isArray(threads)) { fail('fresh browser evidence missing or source/run/model differs'); return; }
   const specs = [];
   const visit = s => { specs.push(...(s.specs ?? [])); for (const child of s.suites ?? []) visit(child); };
   visit(browser);

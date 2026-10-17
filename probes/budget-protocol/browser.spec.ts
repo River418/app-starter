@@ -36,9 +36,9 @@ test('streams text and reloads persisted parts without a new model call', async 
   await expect.poll(async () => (await api(page, `/threads/${id}`)).thread.state).toBe('done');
   const before = (await api(page, `/threads/${id}`)).thread;
   expect((await api(page, `/threads/${id}`)).runs[0].text_deltas).toBeGreaterThanOrEqual(2);
-  await expect(page.locator('[data-role="assistant"]')).toContainText(/\S/);
+  await expect(page.locator('[data-role="assistant"] .message-content')).toContainText(/\S/);
   await page.reload();
-  await expect(page.locator('[data-role="assistant"]')).toContainText(/\S/);
+  await expect(page.locator('[data-role="assistant"] .message-content')).toContainText(/\S/);
   const after = (await api(page, `/threads/${id}`)).thread;
   expect(after.messages).toEqual(before.messages); expect(after.model_calls).toBe(before.model_calls);
 });
@@ -76,7 +76,7 @@ test('denies a proposed write without executing it', async ({ page }) => {
 test('aborts the browser/Worker/provider signals and never reopens a cancelled run', async ({ page }) => {
   const id = await newThread(page, 'cancel');
   await send(page, 'Write a long list of 200 facts about astronomy.');
-  await expect(page.locator('[data-role="assistant"]')).toContainText(/\S/);
+  await expect(page.locator('[data-role="assistant"] .message-content')).toContainText(/\S/);
   await page.getByRole('button', { name: 'Stop', exact: true }).click();
   await expect.poll(async () => (await api(page, `/threads/${id}`)).thread.state).toBe('cancelled');
   await expect.poll(async () => (await api(page, `/threads/${id}`)).runs.at(-1)?.request_aborted).toBe(1);
