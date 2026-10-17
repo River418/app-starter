@@ -2,6 +2,7 @@ import { readFile, writeFile, mkdir } from "node:fs/promises";
 import config from "../app.config.ts";
 import { runTool } from "./process.mjs";
 import { readWranglerConfig } from "./config.mjs";
+import { setupBilling } from "./setup-billing.mjs";
 import {
   validateDeployment,
   bucketNames,
@@ -131,6 +132,7 @@ await writeFile(stateFile, JSON.stringify({ preset: config.preset }));
 const health = await fetch(`${vars.APP_ORIGIN}/api/health`);
 if (!health.ok || !(await health.json()).ok)
   throw new Error("Deployment health check failed");
+if (config.billing?.enabled) await setupBilling(environment);
 console.log(
   `Deployed ${vars.APP_ORIGIN}. Run npm run bootstrap:token -- ${environment} for first administrator.`,
 );

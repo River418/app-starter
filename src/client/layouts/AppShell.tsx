@@ -27,9 +27,19 @@ export function AppShell() {
         <FileText size={18} />
         {t("records")}
       </NavLink>
+      {config.billingEnabled && (
+        <NavLink to="/app/billing" onClick={() => setOpen(false)}>
+          {t("billing.title")}
+        </NavLink>
+      )}
       {identity.role === "admin" && (
         <>
           <span className="nav-caption">{t("admin")}</span>
+          {config.billingEnabled && (
+            <NavLink to="/app/admin/billing" onClick={() => setOpen(false)}>
+              {t("billing.admin")}
+            </NavLink>
+          )}
           <NavLink to="/app/admin/users" onClick={() => setOpen(false)}>
             <Users size={18} />
             {t("users")}

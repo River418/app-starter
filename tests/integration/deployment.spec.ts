@@ -18,6 +18,7 @@ test("unknown API returns JSON, config never contains secret keys", async () => 
     [
       "authMode",
       "authReady",
+      "billingEnabled",
       "environment",
       "maxFileBytes",
       "preset",

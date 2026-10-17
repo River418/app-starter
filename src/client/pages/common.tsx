@@ -14,6 +14,11 @@ export function HomePage() {
       <span className="eyebrow">{config.title}</span>
       <h1>{t("homeTitle")}</h1>
       <p>{t("homeDescription")}</p>
+      {config.billingEnabled && (
+        <Link className="button button-secondary" to="/pricing">
+          {t("billing.pricing")}
+        </Link>
+      )}
       <Link className="button button-primary" to="/app/records">
         {t("getStarted")} →
       </Link>

@@ -9,13 +9,17 @@ import { administration } from "./administration/users";
 import { requireIdentity } from "./auth/auth";
 import { recordRoutes } from "../features/records/server/routes";
 import { fileRoutes } from "./files/routes";
+import { billingRoutes } from "../features/billing/server/routes";
 
 export const app = new Hono<AppEnv>();
 app.use("*", async (c, next) => {
   c.header("Cache-Control", "private, no-store");
   c.header("X-Content-Type-Options", "nosniff");
   c.header("Referrer-Policy", "no-referrer");
-  if (!["GET", "HEAD", "OPTIONS"].includes(c.req.method)) {
+  if (
+    !["GET", "HEAD", "OPTIONS"].includes(c.req.method) &&
+    !(c.req.method === "POST" && c.req.path === "/api/billing/webhook")
+  ) {
     if (
       c.req.header("Origin") !== c.env.APP_ORIGIN ||
       c.req.header("Sec-Fetch-Site") === "cross-site"
@@ -34,12 +38,13 @@ app.route("/api/admin", administration);
 app.get("/api/session", async (c) => c.json(await requireIdentity(c)));
 app.route("/api/records", recordRoutes);
 app.route("/api", fileRoutes);
+app.route("/api", billingRoutes);
 app.get("/api/health", async (c) => {
   const version = await c.env.DB.prepare(
     "SELECT max(version) AS version FROM schema_version",
   ).first<{ version: number }>();
   return c.json({
-    ok: version?.version === 2,
+    ok: version?.version === 4,
     environment: c.env.APP_ENV,
     schemaVersion: version?.version,
   });

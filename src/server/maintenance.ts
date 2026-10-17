@@ -1,10 +1,13 @@
 import type { Bindings } from "./types";
-export async function maintainFiles(env: Pick<Bindings, "DB" | "FILES">) {
+export async function maintainFiles(
+  env: Pick<Bindings, "DB" | "FILES">,
+  limit = 20,
+) {
   const now = Date.now();
   const candidates = await env.DB.prepare(
-    "SELECT id,object_key,upload_complete FROM files WHERE (state='deleting' AND cleanup_at<=?) OR (state='pending' AND created_at<?) ORDER BY cleanup_at,created_at LIMIT 20",
+    "SELECT id,object_key,upload_complete FROM files WHERE (state='deleting' AND cleanup_at<=?) OR (state='pending' AND created_at<?) ORDER BY cleanup_at,created_at LIMIT ?",
   )
-    .bind(now, now - 15 * 60 * 1000)
+    .bind(now, now - 15 * 60 * 1000, limit)
     .all<{ id: string; object_key: string; upload_complete: number }>();
   for (const file of candidates.results) {
     // Mark before deleting R2. Keep an unfinished-upload tombstone so a late put remains discoverable.

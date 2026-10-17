@@ -3,3 +3,14 @@
 SUPABASE_URL="http://127.0.0.1:55321"
 SUPABASE_PUBLISHABLE_KEY=""
 SUPABASE_SECRET_KEY=""
+# Optional payments. Each dev/prod target uses its own Stripe credentials.
+# First billing setup creates and securely backs up the Webhook signing secret.
+STRIPE_SECRET_KEY=""
+STRIPE_WEBHOOK_SECRET=""
+# Opt-in real Sandbox runner only; verifies the exact test account before writes.
+# STRIPE_SANDBOX_ACCOUNT_ID=""
+# Optional runtime mail (verified Resend sender). Setup-only keys stay local/CI.
+RESEND_API_KEY=""
+# CLOUDFLARE_API_TOKEN=""
+# RESEND_SETUP_API_KEY=""
+# EMAIL_FORWARD_TO=""

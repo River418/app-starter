@@ -24,4 +24,6 @@ R2 stays private. Owner-authorized downloads use attachment disposition and nosn
 
 Web imports no AI SDK, Agent UI or Workflow export/binding. Agent execution is Phase 4. Until it wires the real run/outbox/reservation drain query, Agent-to-Web deployment fails closed, including from a clean checkout (checks current remote preset).
 
-Stripe billing, model streaming, persistent runs, confirmation tools and settlement remain subsequent phases. Archived probes are evidence of specific experiments, not product features.
+Stripe billing now lives under `src/features/billing/{client,shared,server}`. Client DTOs and lazy pages remain separate from the Stripe SDK, credentials and D1 logic. Immutable prices preserve historical benefits. A durable event inbox and per-member leases fence atomic source/ledger/event commits; free, invoice-period and purchased credits remain separate. The one Scheduled handler shares its 20-candidate budget between file and billing recovery. [Payment semantics](billing.md).
+
+Model streaming, persistent runs, confirmation tools and successful-step usage settlement remain Phase 4. Archived probes are evidence of specific experiments, not product features.

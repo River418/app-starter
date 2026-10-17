@@ -6,7 +6,9 @@ export default defineConfig({
   timeout: 30000,
   testIgnore: process.env.APP_STARTER_PUBLIC_E2E
     ? []
-    : ["**/public-auth.spec.ts"],
+    : process.env.APP_STARTER_BILLING_E2E
+      ? []
+      : ["**/public-auth.spec.ts", "**/billing.spec.ts"],
   globalSetup: "./tests/e2e/global-setup.ts",
   globalTeardown: "./tests/e2e/global-teardown.ts",
   use: { baseURL: "http://localhost:5173", trace: "retain-on-failure" },

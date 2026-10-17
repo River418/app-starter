@@ -8,6 +8,10 @@ export interface Bindings {
   SUPABASE_URL: string;
   SUPABASE_PUBLISHABLE_KEY: string;
   SUPABASE_SECRET_KEY: string;
+  STRIPE_SECRET_KEY?: string;
+  STRIPE_WEBHOOK_SECRET?: string;
+  STRIPE_TEST_API_URL?: string;
+  RESEND_API_KEY?: string;
 }
 export interface Identity {
   userId: string;
