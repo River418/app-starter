@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "model": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+  "compatibilityDate": "2026-10-17",
+  "runtime": {
+    "node": "24.21.0",
+    "typescript": "7.0.2",
+    "wrangler": "4.151.1"
+  },
+  "dependencies": {
+    "hono": "4.13.13",
+    "better-auth": "1.7.10",
+    "stripe": "23.0.0",
+    "zod": "4.6.7",
+    "ai": "7.0.143",
+    "@ai-sdk/react": "4.0.147",
+    "@ai-sdk/provider": "4.0.29",
+    "workers-ai-provider": "4.0.0",
+    "@assistant-ui/react": "0.15.29",
+    "@assistant-ui/ai-sdk": "0.0.13",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  },
+  "testing": {
+    "vitest": "5.0.5",
+    "@cloudflare/vitest-plugin": "1.4.4",
+    "@cloudflare/workers-types": "5.20261016.1",
+    "vite": "8.3.4",
+    "@vitejs/plugin-react": "6.1.2",
+    "@playwright/test": "1.64.1",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0"
+  },
+  "passwordHash": {
+    "implementation": "Better Auth default native scrypt",
+    "N": 16384,
+    "r": 16,
+    "p": 1,
+    "dkLen": 64
+  },
+  "validationStatus": "See docs/validation/current-status.md; Free password CPU rejected; phase two deferred",
+  "compatibilityFlags": [
+    "nodejs_compat",
+    "enable_request_signal",
+    "request_signal_passthrough"
+  ],
+  "probeLimits": {
+    "authBodyBytes": 4096,
+    "webhookBodyBytes": 16384,
+    "userMessageBytes": 2048,
+    "historyBytes": 16384,
+    "outputTokens": 128,
+    "cancelOutputTokens": 512,
+    "workflowOutputTokens": 32,
+    "toolSteps": 3,
+    "generationRequests": 40
+  }
+}

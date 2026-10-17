@@ -1,8 +1,11 @@
 # 少配置应用模板完整方案
 
+> 用户已批准第二阶段变更：[app-starter / Supabase Auth 修订](../specs/2026-10-17-phase-two-auth-amendment.md)。第二阶段以此修订为准；历史 CPU 证据不变。
 日期：2026-10-17
 
 状态：已批准的设计基线。先执行[实施计划](../plans/2026-10-17-cloudflare-app-starter-implementation-plan.md)中的三项可行性验证，通过后再搭建模板。
+
+2026-10-17 执行调整：用户明确允许暂时跳过缺少凭据的 Stripe Sandbox 云验证；支付保持“尚未验证”，豁免范围与门禁记录在实施计划及 `docs/validation/approved-exceptions.json`。Cloudflare、CPU/模型和恢复门槛保持不变。
 
 本方案面向快速验证新应用：前端、认证、支付、数据和 Agent 采用固定默认组合，一处应用配置、一套发布流程。基础设施优先使用免费额度；完整应用按 Workers Paid 每账户每月 5 美元起预留预算，模型、资源超额、邮件和支付费用另计。免费额度是验证路径，不是完整系统永久免费运行的承诺。
 

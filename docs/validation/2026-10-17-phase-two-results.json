@@ -1,0 +1,236 @@
+{
+  "recordedAt": "2026-10-17T12:54:43.635Z",
+  "scope": "Phase 2 tasks 5-7; Supabase Auth, Web foundation and separate preset entries",
+  "sourceCommit": "be9af0616541d23bc70fb4aa2c4a961817fae52d",
+  "commands": [
+    {
+      "command": "npm run type-check",
+      "exitCode": 0
+    },
+    {
+      "command": "npm test",
+      "exitCode": 0,
+      "tests": 82,
+      "breakdown": {
+        "build": 8,
+        "applicationIntegration": 13,
+        "historicalGate": 23,
+        "historicalHelpers": 7,
+        "historicalWorkers": 31
+      }
+    },
+    {
+      "command": "npm run test:e2e",
+      "exitCode": 0,
+      "tests": 3,
+      "includes": [
+        "invite confirmation refresh resumes password setup",
+        "actual record update and delete with attachments",
+        "logout/account switch",
+        "theme/language/mobile navigation"
+      ]
+    },
+    {
+      "command": "npm run test:e2e:public",
+      "exitCode": 0,
+      "tests": 1,
+      "includes": [
+        "real Mailpit verification email",
+        "unverified login rejected",
+        "recovery confirmation refresh",
+        "password changed",
+        "token replay rejected"
+      ]
+    },
+    {
+      "command": "isolated native CLI migrations and bootstrap-token local",
+      "exitCode": 0,
+      "duplicateIssuanceRefused": true,
+      "privateLinkUnchanged": true
+    }
+  ],
+  "localProvider": {
+    "type": "official local Supabase",
+    "services": [
+      "Postgres",
+      "GoTrue",
+      "Kong",
+      "Mailpit"
+    ],
+    "backendRouteInterception": false,
+    "cloudCredentialsRequired": false
+  },
+  "cloud": {
+    "scope": "Current frozen application source; real Cloudflare anonymous deployment only",
+    "source": {
+      "directory": "final-invite-source",
+      "authMode": "invite",
+      "capturedAt": "2026-10-17T12:52:00.262Z",
+      "fileCount": 45,
+      "manifestSha256": "dbf376509255e415dfa96619fbaae9cacf9883f04531b1386e3c8c8abfe7b587",
+      "manifestHashEncoding": "SHA256(JSON.stringify(parsed final-source-manifest.json))",
+      "versions": {
+        "node": "v24.21.0",
+        "wrangler": "4.151.1",
+        "vite": "8.3.4",
+        "@cloudflare/vite-plugin": "1.64.0",
+        "@supabase/ssr": "0.12.7",
+        "@supabase/supabase-js": "2.118.0",
+        "hono": "4.13.13",
+        "react": "19.3.1"
+      },
+      "rootSourcesMatchedAtCapture": true,
+      "includesPublicHeaders": true,
+      "rootSourcesStillMatchAtCompletion": true,
+      "codeCommit": "be9af0616541d23bc70fb4aa2c4a961817fae52d"
+    },
+    "environments": {
+      "dev": {
+        "url": "https://app-starter-check-418-20261017-dev.broadvisionx.workers.dev",
+        "nativeVersionId": "57e359fb-2995-4d25-83c2-c33ad563a1bb",
+        "workerBundleSha256": "9f6eb7e01243b518f16ee1cc49fe2c8b644a20387fd532def7821d0523445e8e",
+        "resourcesReused": true,
+        "emittedMappingVerified": true,
+        "originalSentinelPreserved": true,
+        "checks": [
+          {
+            "path": "/api/health",
+            "status": 200,
+            "contentType": "application/json",
+            "referrerPolicy": "no-referrer",
+            "passed": true
+          },
+          {
+            "path": "/api/config",
+            "status": 200,
+            "contentType": "application/json",
+            "referrerPolicy": "no-referrer",
+            "passed": true
+          },
+          {
+            "path": "/api",
+            "status": 404,
+            "contentType": "application/json",
+            "referrerPolicy": "no-referrer",
+            "passed": true
+          },
+          {
+            "path": "/api/missing",
+            "status": 404,
+            "contentType": "application/json",
+            "referrerPolicy": "no-referrer",
+            "passed": true
+          },
+          {
+            "path": "/app/records",
+            "status": 200,
+            "contentType": "text/html",
+            "referrerPolicy": "no-referrer",
+            "passed": true
+          },
+          {
+            "path": "/api/session",
+            "status": 503,
+            "contentType": "application/json",
+            "referrerPolicy": "no-referrer",
+            "passed": true
+          }
+        ],
+        "publicConfig": {
+          "title": "App Starter",
+          "authMode": "invite",
+          "environment": "dev",
+          "authReady": false
+        }
+      },
+      "prod": {
+        "url": "https://app-starter-check-418-20261017-prod.broadvisionx.workers.dev",
+        "nativeVersionId": "3472e46f-5f0f-472d-8d3d-bd1246a9357e",
+        "workerBundleSha256": "9f6eb7e01243b518f16ee1cc49fe2c8b644a20387fd532def7821d0523445e8e",
+        "resourcesReused": true,
+        "emittedMappingVerified": true,
+        "originalSentinelPreserved": true,
+        "checks": [
+          {
+            "path": "/api/health",
+            "status": 200,
+            "contentType": "application/json",
+            "referrerPolicy": "no-referrer",
+            "passed": true
+          },
+          {
+            "path": "/api/config",
+            "status": 200,
+            "contentType": "application/json",
+            "referrerPolicy": "no-referrer",
+            "passed": true
+          },
+          {
+            "path": "/api",
+            "status": 404,
+            "contentType": "application/json",
+            "referrerPolicy": "no-referrer",
+            "passed": true
+          },
+          {
+            "path": "/api/missing",
+            "status": 404,
+            "contentType": "application/json",
+            "referrerPolicy": "no-referrer",
+            "passed": true
+          },
+          {
+            "path": "/app/records",
+            "status": 200,
+            "contentType": "text/html",
+            "referrerPolicy": "no-referrer",
+            "passed": true
+          },
+          {
+            "path": "/api/session",
+            "status": 503,
+            "contentType": "application/json",
+            "referrerPolicy": "no-referrer",
+            "passed": true
+          }
+        ],
+        "publicConfig": {
+          "title": "App Starter",
+          "authMode": "invite",
+          "environment": "prod",
+          "authReady": false
+        }
+      }
+    },
+    "independentRootHttpRecheck": "passed",
+    "currentSnapshotCpuSamples": []
+  },
+  "review": {
+    "freshWholeBranchReview": true,
+    "criticalFindings": 0,
+    "importantFindings": 3,
+    "importantFindingsResolved": [
+      "JSONC CLI parsing",
+      "resume confirmed password setup after refresh",
+      "remove recovery revocation; conditional pending-invite revocation"
+    ],
+    "minorCoverageGapResolved": "real record deletion and failed R2 cleanup retry"
+  },
+  "deferredByUser": [
+    "hosted Supabase authentication",
+    "hosted email delivery",
+    "new authentication cloud CPU budget"
+  ],
+  "outOfPhase": [
+    "Stripe payments",
+    "Agent chat and durable execution",
+    "release packaging"
+  ],
+  "historicalPhaseOne": "Better Auth Workers Free CPU gate remains failed; not relabeled",
+  "cleanup": {
+    "localAuthStopped": true,
+    "dataBackupRetained": true,
+    "smokeWorkersHaveNoCron": true,
+    "cloudValidationResourcesRetained": true
+  }
+}

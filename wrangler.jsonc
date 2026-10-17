@@ -1,0 +1,96 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "app-starter-local",
+  "main": "src/server/entrypoints/web.ts",
+  "compatibility_date": "2026-10-17",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "assets": {
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": [
+      "/api",
+      "/api/*"
+    ]
+  },
+  "observability": {
+    "enabled": true,
+    "logs": {
+      "enabled": true,
+      "invocation_logs": false
+    }
+  },
+  "vars": {
+    "APP_ENV": "local",
+    "APP_ORIGIN": "http://localhost:5173",
+    "SUPABASE_URL": "",
+    "SUPABASE_PUBLISHABLE_KEY": ""
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "app-starter-local",
+      "database_id": "00000000-0000-0000-0000-000000000001",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "FILES",
+      "bucket_name": "app-starter-local"
+    }
+  ],
+  "env": {
+    "dev": {
+      "vars": {
+        "APP_ENV": "dev",
+        "APP_ORIGIN": "",
+        "SUPABASE_URL": "",
+        "SUPABASE_PUBLISHABLE_KEY": "",
+        "AUTH_SETTINGS_CONFIRMED": ""
+      },
+      "d1_databases": [],
+      "r2_buckets": []
+    },
+    "prod": {
+      "vars": {
+        "APP_ENV": "prod",
+        "APP_ORIGIN": "",
+        "SUPABASE_URL": "",
+        "SUPABASE_PUBLISHABLE_KEY": "",
+        "AUTH_SETTINGS_CONFIRMED": ""
+      },
+      "d1_databases": [],
+      "r2_buckets": []
+    },
+    "e2e": {
+      "name": "app-starter-e2e",
+      "vars": {
+        "APP_ENV": "e2e",
+        "APP_ORIGIN": "http://localhost:5173",
+        "SUPABASE_URL": "",
+        "SUPABASE_PUBLISHABLE_KEY": ""
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "app-starter-e2e",
+          "database_id": "00000000-0000-0000-0000-000000000002",
+          "migrations_dir": "migrations"
+        }
+      ],
+      "r2_buckets": [
+        {
+          "binding": "FILES",
+          "bucket_name": "app-starter-e2e"
+        }
+      ]
+    }
+  },
+  "triggers": {
+    "crons": [
+      "*/10 * * * *"
+    ]
+  }
+}

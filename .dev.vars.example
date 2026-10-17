@@ -1,0 +1,5 @@
+# Use a separate hosted DEV Supabase project, or npm run auth:local:start.
+# Never put the secret key in app.config.ts, VITE_* variables or source control.
+SUPABASE_URL="http://127.0.0.1:55321"
+SUPABASE_PUBLISHABLE_KEY=""
+SUPABASE_SECRET_KEY=""

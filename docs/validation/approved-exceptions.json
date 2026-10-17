@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "exceptions": [{
+    "id": "stripe-sandbox-2026-10-17",
+    "gate": "deployment",
+    "approvedBy": "user",
+    "approvedAt": "2026-10-17",
+    "scope": ["stripe-sandbox-reuse", "price-versioning"],
+    "reason": "暂时没有sandbox，可以跳过",
+    "paymentValidation": "unverified"
+  }]
+}

@@ -1,0 +1,11 @@
+import { spawnSync } from 'node:child_process';
+import { resolve } from 'node:path';
+const root=resolve(import.meta.dirname,'..'),[target,...args]=process.argv.slice(2);
+if(!['deployment','budget-protocol','recovery'].includes(target))throw Error('Unknown probe');
+if(args.includes('--cloud')&&args.includes('--local'))throw Error('Select one execution mode');
+const cloud=args.includes('--cloud');
+const localFiles={deployment:['probes/deployment/deploy-reuse.spec.ts'],'budget-protocol':['probes/budget-protocol/cloud-budget-protocol.spec.ts','probes/budget-protocol/http.spec.ts'],recovery:['probes/recovery/recovery-settlement.spec.ts']};
+const command=cloud?[`probes/${target}/cloud.mjs`,...args.filter(x=>!['--cloud','--local'].includes(x))]:['node_modules/vitest/vitest.mjs','run',...localFiles[target],'--maxWorkers','1'];
+const result=spawnSync(process.execPath,command,{cwd:root,stdio:'inherit',env:process.env});
+if(result.error)throw result.error;
+process.exitCode=result.status??1;
