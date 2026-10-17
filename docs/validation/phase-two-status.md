@@ -1,6 +1,8 @@
 # Phase 2 validation
 
-Approved scope: tasks 5–7, public **app-starter**, Supabase Auth replacing product Better Auth. Necessary costs no longer block implementation. The user deferred hosted Supabase credentials; complete cloud authentication/email delivery remain unverified.
+Approved scope: tasks 5–7, public **app-starter**, Supabase Auth replacing product Better Auth. Necessary costs no longer block implementation. At this historical acceptance, the user deferred hosted Supabase credentials; complete cloud authentication/email delivery were unverified.
+
+**2026-10-18 follow-up:** a dedicated hosted Supabase project, real cloud bootstrap/login/session and authenticated billing API checks are now verified; cloud request CPU was measured and the Free budget failed. The development validation Worker now has the product ten-minute billing/cleanup Cron. SMTP and authenticated cloud CRUD/browser payment remain separate gates. [Later cloud evidence and limits](cloud-payment-2026-10-18.md) supersede only those historical deferred statuses actually retested; the original smoke observations below are unchanged.
 
 - Local integration uses real Supabase Auth/Postgres, Workers, D1 and R2. Browser flows use real APIs/cookies and Mailpit messages, with no backend route interception.
 - Cloudflare smoke uses separate disposable dev/prod resources with Auth explicitly unconfigured. It proves only its recorded deployment/routing/isolation/retention scope, not cloud login, authenticated CRUD, email delivery or the new auth CPU budget.

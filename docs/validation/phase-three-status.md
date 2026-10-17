@@ -4,6 +4,18 @@ Scope: approved implementation-plan Tasks 8–9, plus the user's optional email 
 
 Implemented: optional single-currency monthly subscription and credit pack, owned catalog/Portal/Webhook initialization, persistent checkout operations, raw signed webhook inbox, fenced canonical reconciliation, per-source credit/feature ledger, source-specific refunds/disputes, audited administrator recovery/adjustments, bilingual pricing/billing/return/admin UI, and one bounded Scheduled handler.
 
+## Cloud follow-up — 2026-10-18
+
+This follow-up supersedes the deferred hosted-auth/direct-delivery status in the historical 2026-10-17 acceptance below. The user authorized independent hosted Supabase, real managed Sandbox delivery and cloud CPU validation. An isolated free Supabase project and the normal product deployment passed bootstrap, login, session and administrator authorization checks. Deployment passed native preflight, types/build, migrations, health and owned Stripe endpoint readiness. See [the cloud evidence report](cloud-payment-2026-10-18.md) for scope and remaining gates.
+
+- Real Stripe `invoice.paid` delivery directly to Cloudflare, including official CLI `events resend` directly to the endpoint, passed. The operator fixture received exactly one 100-credit grant. A real Sandbox refund of 990 minor units succeeded, with exactly one -100 source reversal in D1; subscription cancellation completed. All 61 provider/synthetic/internal inbox rows finished `done`, including refund/expiry recovery; this is not a count of 61 real Stripe deliveries. Test subscriptions were canceled and two unpaid hosted Checkout sessions expired. The temporary one-minute validation Cron was restored to the default ten-minute schedule and verified through the native API.
+- That disabled operator fixture used a subscription created directly through the Stripe API and D1 membership/order fixtures; it had no Supabase identity. It proves provider delivery and ledger effects, not a purchase by an authenticated cloud user. The separate `cloudadmin` identity passed real hosted login, created both plans' actual cloud Checkout sessions, reused matching operation IDs, and created the owned Portal. Unpaid orders remained unconfirmed with zero credits. Its hosted payment flow is incomplete: a browser 1Password prompt awaits user dismissal. Full cloud payment E2E is **not passed**.
+- Canonical reconciliation CPU samples: ordinary payload 20/20, p50/p95/max **20/26/58 ms**; 256 KiB payload 20/20, **21/26/28 ms**. All 40 exceeded 10 ms: **Workers Free gate failed**. Workers Paid remains untested and was not purchased. Signature and ordinary API paths lack Tail CPU samples and remain **missing**, not passing.
+- Latest local verification: **113 tests passed** (16 build/setup + 36 integration + 61 regression), types and build passed. Worker bundle: **1,731.80 KiB raw / 337.48 KiB gzip**; native startup **15 ms**. These are separate from request CPU measurements.
+- Hosted SMTP and production were not tested in this follow-up. Historical Better Auth results remain unchanged.
+
+## Historical implementation and local baseline
+
 Initial red test: importing the missing billing module failed before implementation. Local baseline completed before changes. Build/setup tests and the first full application suite passed; final post-review verification is recorded below before delivery.
 
 The dedicated billing browser flow already passed with actual Supabase Auth, Worker APIs, D1 migrations, signed Webhook and persisted purchase/refund effects. Only the external payment supplier was replaced with an explicit loopback simulator; no browser route mocks or real card/charge were used. Visual inspection covered the actual rendered billing page. This is local business evidence, not Stripe evidence.
@@ -13,14 +25,16 @@ The dedicated billing browser flow already passed with actual Supabase Auth, Wor
 - Historical anonymous CLI admission failed on account/balance permissions, before catalog/payment mutations. The latest user instruction prohibits further anonymous Sandbox use. No requests were made to it after that instruction; its failure remains historical evidence.
 - The current CLI login and authenticated Dashboard owner were verified, then a blank, managed `app-starter` Sandbox was created under that owner. Existing standard test keys passed exact-account and `livemode=false` checks before replacing ignored `.dev.vars.dev`. No global CLI profile or existing project was changed; no broader OAuth grant was needed. Account identity/key artifacts remain private.
 - Real Stripe catalog reuse/immutable price versioning, hosted Checkout/Portal, purchase, paid first invoice, Test Clock renewal, period-end cancellation and full refund: **passed in that managed Sandbox**. Details and separate delivery scope appear below.
-- Provider-to-Cloudflare callback delivery and Phase 3 cloud CPU/bundle/request limits: **unverified**. Local build/signature tests do not prove Free viability.
+- Provider-to-Cloudflare callback delivery is now verified within the operator-fixture scope above. The measured reconciliation path failed the Free CPU gate; missing signature/API CPU samples, Paid behavior and full authenticated cloud Checkout remain unverified.
 - Production/live charges: not created or tested.
 - Agent execution, reservations and successful-step settlement: Phase 4, not implemented or claimed here.
 - Historical Phase 1 Better Auth Free CPU gate remains failed; changing authentication architecture does not rewrite it.
 
 Use [billing setup and recovery](../billing.md) to run your own isolated Sandbox validation before relying on payment acceptance. No unavailable gate is relabeled as passed.
 
-## Local verification after review
+## Historical local verification after review — 2026-10-17
+
+The table preserves that run; the 2026-10-18 follow-up above supersedes its test count and bundle measurements.
 
 | Check | Result |
 |---|---|
@@ -60,4 +74,4 @@ The actual Portal behavior exposed a cancellation display bug. A new regression 
 
 The opt-in `test:sandbox:browser` runner makes hosted UI/provider delivery reproducible using the operator's own Sandbox; see [instructions](../billing.md). Review also corrected startup-interrupt cleanup, owned process-group cleanup and private-file permissions. A forced listener startup failure returned nonzero and restored the original config/environment/lock. The final runner also reached actual Sandbox readiness; Ctrl+C restored default config and the prior fixture environment, removed its lock and stopped its server. The deterministic billing browser suite passed again (one test, 27.0 seconds); its supplier substitute remains separate evidence.
 
-Hosted Supabase credentials remain deferred. This acceptance therefore does not establish authenticated cloud billing, direct Stripe-to-deployed-Cloudflare callbacks, deployed billing setup readiness or cloud CPU limits. No production payment acceptance or full Phase 3 cloud gate is claimed.
+At the time of this 2026-10-17 acceptance, hosted Supabase credentials were deferred, and authenticated cloud billing, direct Stripe-to-Cloudflare delivery, deployed billing setup readiness and cloud CPU limits were unverified. The 2026-10-18 follow-up above supersedes those deferred statuses only within its stated scope. Production payment acceptance and the full Phase 3 cloud gate remain unclaimed.
