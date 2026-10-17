@@ -86,7 +86,7 @@ export async function deployProbe({ account, environment, subdomain, prepare = f
   await ensureSecrets(secretsPath);
   const common = ['--config', configPath, '--env', environment];
   await wrangler(['deploy', ...common, '--dry-run', '--autoconfig=false', '--outdir', resolve(root, '.local/build', environment)], options);
-  await wrangler(['d1', 'migrations', 'apply', 'DB', ...common, '--remote', '--yes'], options);
+  await wrangler(['d1', 'migrations', 'apply', 'DB', ...common, '--remote'], options);
   const output = await wrangler(['deploy', ...common, '--autoconfig=false', '--secrets-file', secretsPath, ...(title ? ['--var', `PROBE_TITLE:${title}`] : [])], options);
   console.log(output.split('\n').filter(x => /workers.dev|Version ID|Workflow|Uploaded|Deployed/.test(x)).join('\n'));
 }
