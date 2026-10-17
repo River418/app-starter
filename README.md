@@ -2,7 +2,7 @@
 
 An independent, open-source starter for validating web and agent applications with a small amount of configuration on Cloudflare.
 
-**Status: planning and repository setup.** The application template has not been implemented. Deployment, runtime budget, and recovery probes must pass before template construction starts.
+**Status: Phase 1 probes in development.** The application template has not been implemented. Deployment, runtime budget, and recovery probes must pass on real cloud services before template construction starts.
 
 ## Design
 
@@ -15,7 +15,16 @@ Frontend defaults include shadcn/ui with Radix, Tailwind CSS, React Router, TanS
 - [Complete design](docs/superpowers/specs/2026-10-17-minimal-cloudflare-app-starter-design.md)
 - [Implementation plan](docs/superpowers/plans/2026-10-17-cloudflare-app-starter-implementation-plan.md)
 
-The documents are currently written in Chinese. There are no working application or deployment commands yet; commands in the plan describe deliverables to be implemented.
+The documents are currently written in Chinese. Probe tooling is available; application and deployment commands in the plan are still deliverables to be implemented.
+
+```sh
+npm ci
+npm test
+npm run type-check
+npm run verify:gate
+```
+
+The tests use disposable local Workers, D1, R2, and Workflows. They do not establish cloud readiness. `verify:gate` fails until all three actual cloud reports and their supporting evidence exist. Copy `.dev.vars.example` to the ignored `.dev.vars` for the two independent Stripe Sandbox keys; never commit them.
 
 ## First milestone
 

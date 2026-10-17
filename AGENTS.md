@@ -4,7 +4,7 @@ This is an independent open-source Cloudflare application starter. Read the desi
 
 ## Phase gates
 
-- The current repository contains planning documents, not a working starter.
+- Phase 1 probes are in development. The application template is not implemented and Phase 2 remains locked.
 - Phase 1 may add only the minimum disposable probes and their tooling.
 - Do not construct the application template until the deployment, CPU/protocol, and recovery gates all have passing evidence for the selected dependency commit and platform plan.
 - Treat not-run, skipped, failed, missing evidence, and local substitutes for cloud measurements as non-passing.
@@ -24,4 +24,4 @@ This is an independent open-source Cloudflare application starter. Read the desi
 - Do not create real charges or automatically buy a platform plan.
 - Never commit credentials, cookies, webhook signatures, private payloads, raw cloud logs, or unredacted evidence. Only reviewed, sanitized evidence summaries may enter docs/validation/.
 - Use real application APIs and persistence for integration tests. Provider substitutes are allowed for deterministic business tests, not for proving cloud CPU, real model, or real Sandbox gates.
-- This documentation-only baseline has no dependency install, build, or runtime test commands. Do not claim proposed commands already exist.
+- Current commands: `npm test`, `npm run type-check`, `npm run verify:gate`. Keep documentation aligned with actual scripts; do not claim planned application commands already exist.

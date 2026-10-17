@@ -1,0 +1,28 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "cfas-probe-local",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-17",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true, "head_sampling_rate": 1 },
+  "vars": { "PROBE_ENV": "local", "PROBE_TITLE": "Validation probe", "BETTER_AUTH_URL": "http://probe.local" },
+  "d1_databases": [{ "binding": "DB", "database_name": "cfas-probe-local", "database_id": "00000000-0000-0000-0000-000000000001", "migrations_dir": "migrations" }],
+  "r2_buckets": [{ "binding": "FILES", "bucket_name": "cfas-probe-local" }],
+  "workflows": [{ "binding": "BOOTSTRAP_WORKFLOW", "name": "cfas-probe-local-bootstrap", "class_name": "BootstrapProbeWorkflow" }],
+  "env": {
+    "dev": {
+      "name": "cfas-probe-418-20261017-dev",
+      "vars": { "PROBE_ENV": "dev", "PROBE_TITLE": "Validation probe", "BETTER_AUTH_URL": "https://not-ready.invalid" },
+      "d1_databases": [{ "binding": "DB", "database_name": "cfas-probe-418-20261017-dev", "migrations_dir": "migrations" }],
+      "r2_buckets": [{ "binding": "FILES", "bucket_name": "cfas-probe-418-20261017-dev" }],
+      "workflows": [{ "binding": "BOOTSTRAP_WORKFLOW", "name": "cfas-probe-418-20261017-dev-bootstrap", "class_name": "BootstrapProbeWorkflow" }]
+    },
+    "prod": {
+      "name": "cfas-probe-418-20261017-prod",
+      "vars": { "PROBE_ENV": "prod", "PROBE_TITLE": "Validation probe", "BETTER_AUTH_URL": "https://not-ready.invalid" },
+      "d1_databases": [{ "binding": "DB", "database_name": "cfas-probe-418-20261017-prod", "migrations_dir": "migrations" }],
+      "r2_buckets": [{ "binding": "FILES", "bucket_name": "cfas-probe-418-20261017-prod" }],
+      "workflows": [{ "binding": "BOOTSTRAP_WORKFLOW", "name": "cfas-probe-418-20261017-prod-bootstrap", "class_name": "BootstrapProbeWorkflow" }]
+    }
+  }
+}

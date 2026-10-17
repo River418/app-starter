@@ -1,0 +1,3 @@
+# Copy to .dev.vars. Never commit real values or paste them into chat.
+STRIPE_PROBE_A_SECRET_KEY=
+STRIPE_PROBE_B_SECRET_KEY=
