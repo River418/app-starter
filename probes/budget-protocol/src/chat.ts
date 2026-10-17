@@ -15,6 +15,13 @@ export async function createChatThread(db: D1Database, owner: string, scenario: 
   return (await loadChatThread(db, owner, id))!;
 }
 export async function loadChatThread(db: D1Database, owner: string, id: string): Promise<ChatThread | null> {
+  await db.batch([
+    db.prepare(`UPDATE model_threads SET state = 'expired', version = version + 1
+      WHERE id = ? AND owner_id = ? AND state = 'awaiting_approval'
+      AND EXISTS (SELECT 1 FROM model_approvals WHERE thread_id = model_threads.id AND decision IS NULL AND expires_at <= unixepoch())`).bind(id, owner),
+    db.prepare(`UPDATE model_runs SET state = 'expired' WHERE thread_id = ? AND state = 'awaiting_approval'
+      AND EXISTS (SELECT 1 FROM model_threads WHERE id = ? AND owner_id = ? AND state = 'expired' AND run_nonce = model_runs.id)`).bind(id, id, owner),
+  ]);
   const row = await db.prepare('SELECT * FROM model_threads WHERE id = ? AND owner_id = ?').bind(id, owner).first<ThreadRow>();
   if (!row) return null;
   const count = await db.prepare('SELECT coalesce(sum(model_calls),0) AS n FROM model_runs WHERE thread_id = ?').bind(id).first<number>('n');

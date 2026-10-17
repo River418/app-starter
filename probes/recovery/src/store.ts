@@ -16,7 +16,7 @@ export async function createRun(db: D1Database, input: { owner: string; operatio
       AND (SELECT coalesce(sum(r.reserved - r.released),0) FROM recovery_reservations r JOIN recovery_runs t ON t.id = r.run_id WHERE t.owner_id = ?) <= 9998
       ON CONFLICT(owner_id, operation_id) DO NOTHING`).bind(id, input.owner, input.operationId, Number(input.approval), input.mode ?? 'normal', token, input.owner, input.owner),
     db.prepare('INSERT INTO recovery_reservations (run_id, reserved) SELECT id, 2 FROM recovery_runs WHERE id = ? AND transition_token = ?').bind(id, token),
-    db.prepare("INSERT INTO recovery_outbox (id, run_id, kind) SELECT id || '-start', id, 'start' FROM recovery_runs WHERE id = ? AND transition_token = ?").bind(id, token),
+    db.prepare("INSERT INTO recovery_outbox (id, run_id, kind) SELECT id || '-start', id, 'start' FROM recovery_runs WHERE id = ? AND transition_token = ? AND mode != 'manual-race'").bind(id, token),
   ]);
   const run = await db.prepare('SELECT * FROM recovery_runs WHERE owner_id = ? AND operation_id = ?').bind(input.owner, input.operationId).first<Run>();
   if (!run) throw Error('Probe quota exceeded');

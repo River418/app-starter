@@ -20,6 +20,11 @@ async function register() {
 }
 
 describe('real local Worker, D1, R2 and Workflow deployment contract', () => {
+  it('attributes JSON, bare auth and denied responses to the deployed source', async () => {
+    for (const response of [await call('/api/probe/status'), await call('/api/auth/get-session'), await worker.default.fetch(origin + '/api/probe/status')]) {
+      expect(response.headers.get('x-probe-source-commit')).toBe('1111111111111111111111111111111111111111');
+    }
+  });
   it('requires the private probe key before allowing cloud-resource access', async () => {
     const response = await worker.default.fetch(origin + '/api/probe/status');
     expect(response.status).toBe(401);

@@ -31,7 +31,15 @@ type ProbeContext = Context<{ Bindings: ProbeEnvironment }>;
 
 const app = new Hono<{ Bindings: ProbeEnvironment }>();
 app.use('/api/*', async (c, next) => {
-  if (c.env.PROBE_SOURCE_COMMIT) c.header('x-probe-source-commit', c.env.PROBE_SOURCE_COMMIT);
+  await next();
+  if (c.env.PROBE_SOURCE_COMMIT) {
+    // Better Auth and the AI SDK return their own Response objects.
+    const response = new Response(c.res.body, c.res);
+    response.headers.set('x-probe-source-commit', c.env.PROBE_SOURCE_COMMIT);
+    c.res = response;
+  }
+});
+app.use('/api/*', async (c, next) => {
   if (c.req.path === '/api/stripe/webhook') return next();
   const supplied = Buffer.from(c.req.header('x-probe-key') ?? '');
   const expected = Buffer.from(c.env.PROBE_KEY ?? '');

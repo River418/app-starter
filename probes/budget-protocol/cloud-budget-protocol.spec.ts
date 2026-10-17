@@ -79,6 +79,18 @@ describe('AI SDK7 protocol with real D1 and a deterministic model adapter', () =
     }
   });
 
+  it('expires an unconfirmed proposal on reload and rejects every later decision', async () => {
+    const thread = await createChatThread(env.DB, 'owner-a', 'write');
+    await consume(await send(thread.id, [message('Change setting')], new MockLanguageModelV4({ doStream: call('writeSetting', { value: 'expired' }) })));
+    const pending = (await loadChatThread(env.DB, 'owner-a', thread.id))!;
+    await env.DB.prepare('UPDATE model_approvals SET expires_at = unixepoch() - 1 WHERE thread_id = ?').bind(thread.id).run();
+    expect(await loadChatThread(env.DB, 'owner-b', thread.id)).toBeNull();
+    expect((await loadChatThread(env.DB, 'owner-a', thread.id))!.state).toBe('expired');
+    for (const approved of [true, false]) expect((await send(thread.id, answer(pending.messages, approved), new MockLanguageModelV4())).status).toBe(409);
+    expect((await loadChatThread(env.DB, 'owner-a', thread.id))!.writes).toBe(0);
+    expect(await env.DB.prepare('SELECT state FROM model_runs WHERE thread_id = ?').bind(thread.id).first('state')).toBe('expired');
+  });
+
   it('cancels the request and provider signal without reopening the persisted run', async () => {
     const thread = await createChatThread(env.DB, 'owner-a', 'cancel');
     let providerSignal: AbortSignal | undefined;

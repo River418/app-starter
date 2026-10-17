@@ -21,6 +21,17 @@ async function conservation(id: string) {
 }
 
 describe('real D1 recovery state and atomic settlement', () => {
+  it('keeps the manual race queued when Scheduled dispatch runs before compete', async () => {
+    const run = await createRun(env.DB, { owner: 'owner-a', operationId: 'manual-under-cron', approval: false, mode: 'manual-race' });
+    expect(await env.DB.prepare('SELECT count(*) FROM recovery_outbox WHERE run_id = ?').bind(run.id).first('count(*)')).toBe(0);
+    await dispatchOutbox(env);
+    expect((await readRun(env.DB, run.id))!.state).toBe('queued');
+    const claimed = await claimRun(env.DB, run.id);
+    expect(claimed).not.toBeNull();
+    await finishPreparation(env.DB, claimed!, false);
+    expect(await completeRun(env.DB, (await readRun(env.DB, run.id))!)).toBe(true);
+    await conservation(run.id);
+  });
   it('commits run, reservation and outbox together and deduplicates operation IDs', async () => {
     const first = await createRun(env.DB, { owner: 'owner-a', operationId: 'stable-operation', approval: false });
     expect((await createRun(env.DB, { owner: 'owner-a', operationId: 'stable-operation', approval: false })).id).toBe(first.id);

@@ -8,7 +8,7 @@ function App() {
   const [key, setKey] = useState(() => sessionStorage.getItem('probe-key') ?? '');
   const [scenario, setScenario] = useState('text');
   const [threadId, setThreadId] = useState(() => new URL(location.href).searchParams.get('thread'));
-  const [history, setHistory] = useState<{ id: string; messages: UIMessage[] } | null>(null);
+  const [history, setHistory] = useState<{ id: string; state: string; messages: UIMessage[] } | null>(null);
   const [error, setError] = useState('');
   useEffect(() => {
     sessionStorage.setItem('probe-key', key);
@@ -34,7 +34,8 @@ function App() {
       <label>Scenario<select value={scenario} onChange={event => setScenario(event.target.value)}><option value="text">Text</option><option value="read">Read tool</option><option value="write">Approved write</option><option value="cancel">Cancellation</option></select></label>
       <button onClick={() => void create()} disabled={!key}>New probe</button></div>
     {error && <p role="alert">{error}</p>}
-    {threadId && history?.id === threadId && <ChatProbe key={threadId} threadId={threadId} messages={history.messages} probeKey={key} />}
+    {history?.state === 'expired' && <p role="status">Approval expired. This probe has ended; start a new probe.</p>}
+    {threadId && history?.id === threadId && history.state !== 'expired' && <ChatProbe key={threadId} threadId={threadId} messages={history.messages} probeKey={key} />}
   </main>;
 }
 createRoot(document.getElementById('root')!).render(<StrictMode><App /></StrictMode>);

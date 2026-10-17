@@ -5,21 +5,24 @@ import { resolve, relative } from 'node:path';
 import { promisify } from 'node:util';
 import Stripe from 'stripe';
 import { openProbe, root, sha256, startTail, summarizeCpu } from '../shared/cloud.mjs';
+import { loadBrowserReport } from './browser-evidence.mjs';
 
 const probe = await openProbe('dev', 'budget-protocol');
 const tail = await startTail('dev', probe.evidenceDir), cases = [], diagnostic = [], threadIds = [];
 const model = '@cf/meta/llama-3.3-70b-instruct-fp8-fast';
+const runId = crypto.randomUUID(), browserPath = resolve(probe.evidenceDir,'browser-results.json'), threadsPath = resolve(probe.evidenceDir,'thread-audits.json');
+let browser;
 let failure;
 try {
   let browserError;
   try {
-    const result = await promisify(execFile)(process.execPath, [resolve(root,'node_modules/playwright/cli.js'),'test','--config','probes/budget-protocol/playwright.config.ts'], { cwd: root, maxBuffer: 8 * 1024 * 1024, env: { ...process.env, CFAS_PROBE_URL: probe.base } });
+    const result = await promisify(execFile)(process.execPath, [resolve(root,'node_modules/playwright/cli.js'),'test','--config','probes/budget-protocol/playwright.config.ts'], { cwd: root, maxBuffer: 8 * 1024 * 1024, env: { ...process.env, CFAS_PROBE_URL: probe.base, CFAS_BROWSER_REPORT: browserPath, CFAS_PROBE_RUN_ID: runId, CFAS_PROBE_SOURCE_COMMIT: probe.sourceCommit, CFAS_PROBE_MODEL: model } });
     await writeFile(resolve(probe.evidenceDir,'browser-run.log'), result.stdout + result.stderr);
   } catch (error) { browserError = error; await writeFile(resolve(probe.evidenceDir,'browser-run.log'), (error.stdout ?? '') + (error.stderr ?? '')); }
-  const browser = JSON.parse(await readFile(resolve(root,'artifacts/browser-results.json'),'utf8'));
+  browser = await loadBrowserReport(browserPath, { runId, sourceCommit: probe.sourceCommit, model });
   const specs = [];
   const visit = suite => { specs.push(...(suite.specs ?? [])); for (const child of suite.suites ?? []) visit(child); };
-  for (const suite of browser.suites) visit(suite);
+  for (const suite of browser?.suites ?? []) visit(suite);
   for (const [id, prefix] of [['text-stream','streams text'],['reload-history','streams text'],['read-tool','renders a real read'],['confirmed-write','asks for approval'],['rejected-write','denies a proposed'],['cancel','aborts the browser']]) {
     const spec = specs.find(x => x.title.startsWith(prefix));
     const test = spec?.tests?.[0], passed = test?.results?.length > 0 && test.results.every(x => x.status === 'passed');
@@ -30,7 +33,7 @@ try {
   }
   const threads = [];
   for (const id of new Set(threadIds)) threads.push((await probe.request(`/api/probe/model/threads/${id}`)).data);
-  await writeFile(resolve(probe.evidenceDir,'thread-audits.json'), JSON.stringify(threads,null,2));
+  await writeFile(threadsPath, JSON.stringify(threads,null,2));
   if (browserError) failure = Error('One or more real browser protocol assertions failed');
   try {
     const id = `probe-model-${crypto.randomUUID()}`;
@@ -76,7 +79,8 @@ finally {
   cases.push({id:'cpu-typical',status:'fail',expected:'20 typical/max samples and cold request per operation, p95 <= 8ms and max <= 10ms on Free',actual:cpuExceeded?'Current real CPU again exceeds Free; diagnostic stopped after decisive failure':'A full passing CPU boundary benchmark was not performed on the rejected Free baseline',cloudIds:probe.journal.map(x=>x.ray).filter(Boolean)});
   cases.push({id:'cpu-max-input',status:'not_run',expected:'20 maximum-boundary samples per operation',actual:'Deferred: Free baseline is rejected and user explicitly deferred phase two; no Paid plan or weaker hash substituted',cloudIds:[]});
   const diagnosticPath = resolve(probe.evidenceDir,'cpu-diagnostic.json'); await writeFile(diagnosticPath,JSON.stringify(samples,null,2));
-  const browserPath=resolve(root,'artifacts/browser-results.json');
-  await probe.save({status:'fail',cases,model,samplesPerBoundary:5,metrics,measurementScope:'Real browser/model/Workflow functional checks; current Free auth CPU diagnostic only, not a complete boundary benchmark',blockers:[failure?.message ?? 'Workers Free cannot meet the default password-hash CPU budget','Full CPU boundary benchmark not eligible; phase two deferred by user'],evidence:[{path:trace.path,sha256:sha256(await readFile(resolve(root,trace.path))),source:'cloudflare'},{path:relative(root,diagnosticPath).replaceAll('\\','/'),sha256:sha256(await readFile(diagnosticPath)),source:'cloudflare'},{path:relative(root,browserPath).replaceAll('\\','/'),sha256:sha256(await readFile(browserPath)),source:'browser'}]});
+  const evidence = [{path:trace.path,sha256:sha256(await readFile(resolve(root,trace.path))),source:'cloudflare',role:'tail'},{path:relative(root,diagnosticPath).replaceAll('\\','/'),sha256:sha256(await readFile(diagnosticPath)),source:'cloudflare',role:'cpu-samples'}];
+  if (browser) evidence.push({path:relative(root,browserPath).replaceAll('\\','/'),sha256:sha256(await readFile(browserPath)),source:'browser',role:'browser'},{path:relative(root,threadsPath).replaceAll('\\','/'),sha256:sha256(await readFile(threadsPath)),source:'cloudflare',role:'threads'});
+  await probe.save({status:'fail',cases,model,runId,samplesPerBoundary:5,metrics,measurementScope:'Real browser/model/Workflow functional checks; current Free auth CPU diagnostic only, not a complete boundary benchmark',blockers:[failure?.message ?? 'Workers Free cannot meet the default password-hash CPU budget','Full CPU boundary benchmark not eligible; phase two deferred by user'],evidence});
 }
 process.exitCode=1; // Free is a measured/rejected baseline, never an implicit pass.

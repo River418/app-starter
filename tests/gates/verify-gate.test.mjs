@@ -11,7 +11,7 @@ const script = fileURLToPath(new URL('../../scripts/verify-gate.mjs', import.met
 const hash = (value) => createHash('sha256').update(value).digest('hex');
 const cases = {
   deployment: ['resource-reuse', 'environment-isolation', 'session-continuity', 'migration-once', 'stripe-sandbox-reuse', 'lost-response-recovery', 'unknown-signing-secret-not-ready', 'price-versioning'],
-  'budget-protocol': ['text-stream', 'read-tool', 'confirmed-write', 'rejected-write', 'reload-history', 'cancel', 'cpu-typical', 'cpu-max-input'],
+  'budget-protocol': ['text-stream', 'read-tool', 'confirmed-write', 'rejected-write', 'reload-history', 'cancel', 'model-workflow', 'cpu-typical', 'cpu-max-input'],
   recovery: ['commit-before-dispatch', 'instance-ack-lost', 'early-confirmation', 'duplicate-confirmation', 'expired-confirmation', 'cancel-wins', 'success-wins', 'cancel-commit-race', 'lease-recovery', 'duplicate-scheduler', 'retry-budget', 'confirmation-timeout', 'usage-conservation'],
 };
 
@@ -35,7 +35,7 @@ function fixture(t, { stripeWaiver = false } = {}) {
   const reports = {};
   for (const [gate, ids] of Object.entries(cases)) {
     const evidencePath = `artifacts/gates/${gate}-evidence.json`;
-    const evidence = JSON.stringify({ provider: 'cloudflare', requestId: `fixture-${gate}`, fixture: true });
+    const evidence = JSON.stringify({ provider: 'cloudflare', requestId: `fixture-${gate}`, fixture: true, cloudIds: ids.map(id => `fixture-${id}`) });
     writeFileSync(path.join(root, evidencePath), evidence);
     reports[gate] = {
       schemaVersion: 1, gate, status: 'pass', sourceCommit, cleanWorkingTree: true,
@@ -46,13 +46,37 @@ function fixture(t, { stripeWaiver = false } = {}) {
       cases: ids.map((id) => ({ id, status: 'pass', expected: 'contract holds', actual: 'contract holds', cloudIds: [`fixture-${id}`] })),
       evidence: [{ path: evidencePath, sha256: hash(evidence), source: 'cloudflare' }],
       ...(gate === 'deployment' ? { stripeMode: 'sandbox', stripeAccounts: ['fixture-a', 'fixture-b'] } : {}),
-      ...(gate === 'budget-protocol' ? { model: 'test-model', samplesPerBoundary: 20, metrics: ['registration', 'login', 'session', 'webhook', 'model-stream', 'tool-loop', 'workflow-step'].map((name) => ({ name, limitMs: 30000, p95Ms: 50, maxMs: 70, sampleCounts: { typical: 20, maximum: 20, cold: 1 }, outcomes: ['ok'] })) } : {}),
+      ...(gate === 'budget-protocol' ? { model: 'test-model', runId: 'fixture-run', samplesPerBoundary: 20, metrics: ['registration', 'login', 'session', 'webhook', 'model-stream', 'tool-loop', 'workflow-step'].map((name) => ({ name, limitMs: 30000, p95Ms: 50, maxMs: 50, sampleCounts: { typical: 20, maximum: 20, cold: 1 }, outcomes: ['ok'] })) } : {}),
     };
     if (gate === 'deployment') {
       const stripePath = 'artifacts/gates/stripe-evidence.json';
       const stripeData = '{"livemode":false,"fixture":true}';
       writeFileSync(path.join(root, stripePath), stripeData);
       reports[gate].evidence.push({ path: stripePath, sha256: hash(stripeData), source: 'stripe' });
+    }
+    if (gate === 'budget-protocol') {
+      const report = reports[gate], samples = [], frames = [], requests = [];
+      const add = (role, data, source = 'cloudflare') => {
+        const file = `artifacts/gates/fixture-${role}.json`, raw = JSON.stringify(data);
+        writeFileSync(path.join(root, file), raw);
+        report.evidence.push({ path: file, sha256: hash(raw), source, role });
+      };
+      for (const metric of report.metrics) for (const [boundary,count] of Object.entries(metric.sampleCounts)) for (let i = 0; i < count; i++) {
+        const invocation = `${metric.name}-${boundary}-${i}`;
+        samples.push({ operation: metric.name, boundary, invocation, cpuTimeMs: 50, outcome: 'ok' });
+        frames.push({ cpuTime: 50, outcome: 'ok', event: { request: { headers: { 'x-probe-invocation': invocation } } } });
+        requests.push({ invocation, workerCommit: sourceCommit, status: 200 });
+      }
+      requests.push({ workerCommit: sourceCommit, path: '/workflows/fixture-model-workflow', response: { status: { status: 'complete' }, result: { model: 'test-model', text: 'fixture' } } });
+      add('cpu-samples', samples); add('tail', frames); add('requests', requests);
+      // Native Tail is a stream of JSON objects, not a JSON array.
+      const tail = report.evidence.find(e => e.role === 'tail'), raw = frames.map(f => JSON.stringify(f)).join('\n');
+      writeFileSync(path.join(root, tail.path), raw); tail.sha256 = hash(raw);
+      const titles = ['streams text', 'renders a real read', 'asks for approval', 'denies a proposed', 'aborts the browser'];
+      const ids = ['text-stream', 'read-tool', 'confirmed-write', 'rejected-write', 'cancel'];
+      report.cases.find(c => c.id === 'reload-history').cloudIds = ['fixture-text-stream'];
+      add('browser', { metadata: { sourceCommit, runId: 'fixture-run', model: 'test-model' }, suites: [{ specs: titles.map((title,i) => ({ title, tests: [{ annotations: [{ type: 'cloud-thread', description: `fixture-${ids[i]}` }], results: [{ status: 'passed' }] }] })) }] }, 'browser');
+      add('threads', ids.map(id => ({ thread: { id: `fixture-${id}` } })));
     }
   }
   function save() { for (const [gate, report] of Object.entries(reports)) writeFileSync(path.join(root, `artifacts/gates/${gate}.json`), JSON.stringify(report)); }
@@ -168,4 +192,34 @@ test('rejects an unapproved Stripe waiver or a waived check reported as verified
   const f = fixture(t);
   Object.assign(f.reports.deployment, { stripeMode: 'waived', stripeException: 'stripe-sandbox-2026-10-17', paymentValidation: 'verified' }); f.save();
   assert.match(f.run().stderr, /Stripe exception.*not approved|Stripe exception.*unverified/);
+});
+
+test('rejects extra failed cases and a substituted model rather than ignoring them', t => {
+  const f = fixture(t);
+  f.reports['budget-protocol'].cases.push({ id: 'model-workflow', status: 'fail', expected: 'Real model', actual: 'Failed', cloudIds: ['fixture-model'] });
+  f.reports['budget-protocol'].model = 'substituted-model'; f.save();
+  const result = f.run();
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /model-workflow.*did not pass/);
+  assert.match(result.stderr, /locked model/);
+});
+
+test('cannot turn opaque or failed evidence into a pass by editing report metrics', t => {
+  const f = fixture(t); f.reports['budget-protocol'].evidence = f.reports['budget-protocol'].evidence.filter(e => !e.role); f.save();
+  assert.equal(f.run().status, 1);
+  assert.match(f.run().stderr, /structured CPU|browser evidence/);
+});
+
+test('recomputes CPU and browser outcomes from this run even if report remains pass', t => {
+  const f = fixture(t), report = f.reports['budget-protocol'];
+  const change = (role, mutate) => {
+    const entry = report.evidence.find(e => e.role === role), raw = mutate(readFileSync(path.join(f.root, entry.path),'utf8'));
+    writeFileSync(path.join(f.root, entry.path), raw); entry.sha256 = hash(raw);
+  };
+  change('tail', raw => raw.replace('"cpuTime":50', '"cpuTime":90000'));
+  change('browser', raw => raw.replace('"status":"passed"', '"status":"failed"'));
+  f.save(); const result = f.run();
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /CPU sample.*disagrees/);
+  assert.match(result.stderr, /actual browser evidence did not pass/);
 });
