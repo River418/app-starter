@@ -87,6 +87,7 @@
     "subscriptions": "订阅记录",
     "validUntil": "已付款账期截止",
     "cancelsAtEnd": "到期取消",
+    "cancelsAt": "将在 {{date}} 取消",
     "none": "暂无记录。",
     "orders": "最近订单",
     "date": "时间",

@@ -202,6 +202,33 @@ it("grants only paid invoice periods, preserves packs, and expires old periods w
   ).run();
   expect((await getEntitlements(env, member.id)).credits).toBe(50);
 });
+it("persists flexible and classic scheduled cancellation without revoking a paid period", async () => {
+  const member = await user();
+  await seedBilling(member.id);
+  const p = provider(member.id);
+  p.intent.amount_received = 990;
+  await deliver("invoice.paid", "in_local");
+  const end = p.sub.items.data[0].current_period_end;
+  p.sub.cancel_at_period_end = false;
+  p.sub.cancel_at = end;
+  await deliver("customer.subscription.updated", "sub_local");
+  const account = async () =>
+    (await (
+      await billingRequest("/api/billing", member.cookie())
+    ).json()) as any;
+  expect((await account()).subscriptions[0].cancel_at).toBe(end * 1000);
+  expect((await getEntitlements(env, member.id)).subscription).toBe(100);
+  p.sub.cancel_at = null;
+  await deliver("customer.subscription.updated", "sub_local");
+  expect((await account()).subscriptions[0].cancel_at).toBe(null);
+  p.sub.cancel_at_period_end = true;
+  await deliver("customer.subscription.updated", "sub_local");
+  expect((await account()).subscriptions[0].cancel_at).toBe(end * 1000);
+  p.sub.cancel_at_period_end = false;
+  p.sub.cancel_at = end - 60;
+  await deliver("customer.subscription.updated", "sub_local");
+  expect((await account()).subscriptions[0].cancel_at).toBe((end - 60) * 1000);
+});
 it("reverses only the refunded source, and does not recreate a refund delivered before success", async () => {
   const member = await user();
   await seedBilling(member.id);

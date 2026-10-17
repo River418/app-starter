@@ -12,6 +12,7 @@ interface Account {
     status: string;
     period_end: number;
     cancel_at_period_end: number;
+    cancel_at: number | null;
   }[];
 }
 export function BillingPage() {
@@ -63,7 +64,9 @@ export function BillingPage() {
           <p key={s.subscription_id}>
             {s.status} · {t("billing.validUntil")}{" "}
             {new Date(s.period_end).toLocaleString()}{" "}
-            {s.cancel_at_period_end ? `· ${t("billing.cancelsAtEnd")}` : ""}
+            {s.cancel_at
+              ? `· ${t("billing.cancelsAt", { date: new Date(s.cancel_at).toLocaleString() })}`
+              : ""}
           </p>
         ))
       ) : (

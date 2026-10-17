@@ -50,7 +50,7 @@ billingRoutes.get("/billing", async (c) => {
   ).results;
   const subscriptions = (
     await c.env.DB.prepare(
-      "SELECT subscription_id,status,period_end,cancel_at_period_end FROM billing_subscriptions WHERE user_id=? ORDER BY period_end DESC LIMIT 20",
+      "SELECT subscription_id,status,period_end,cancel_at_period_end,cancel_at FROM billing_subscriptions WHERE user_id=? ORDER BY period_end DESC LIMIT 20",
     )
       .bind(identity.userId)
       .all()

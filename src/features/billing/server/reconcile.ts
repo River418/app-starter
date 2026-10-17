@@ -192,7 +192,7 @@ export async function processEvent(env: Bindings, eventId: string) {
         throw new Review("subscription_price");
       statements.push(
         sql(
-          "INSERT INTO billing_subscriptions(subscription_id,user_id,customer_id,price_id,status,period_start,period_end,cancel_at_period_end,reconcile_at) SELECT ?,?,?,?,?,?,?,?,? WHERE $GUARD ON CONFLICT(subscription_id) DO UPDATE SET status=excluded.status,period_start=excluded.period_start,period_end=excluded.period_end,cancel_at_period_end=excluded.cancel_at_period_end,reconcile_at=excluded.reconcile_at",
+          "INSERT INTO billing_subscriptions(subscription_id,user_id,customer_id,price_id,status,period_start,period_end,cancel_at_period_end,reconcile_at,cancel_at) SELECT ?,?,?,?,?,?,?,?,?,? WHERE $GUARD ON CONFLICT(subscription_id) DO UPDATE SET status=excluded.status,period_start=excluded.period_start,period_end=excluded.period_end,cancel_at_period_end=excluded.cancel_at_period_end,reconcile_at=excluded.reconcile_at,cancel_at=excluded.cancel_at",
           [
             sub.id,
             customer!.user_id,
@@ -203,6 +203,11 @@ export async function processEvent(env: Bindings, eventId: string) {
             item.current_period_end * 1000,
             sub.cancel_at_period_end ? 1 : 0,
             Date.now() + 3600000,
+            sub.cancel_at != null
+              ? sub.cancel_at * 1000
+              : sub.cancel_at_period_end
+                ? item.current_period_end * 1000
+                : null,
           ],
         ),
       );

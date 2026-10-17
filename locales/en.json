@@ -87,6 +87,7 @@
     "subscriptions": "Subscriptions",
     "validUntil": "Paid period ends",
     "cancelsAtEnd": "Cancels at period end",
+    "cancelsAt": "Cancels on {{date}}",
     "none": "No entries yet.",
     "orders": "Recent orders",
     "date": "Date",

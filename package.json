@@ -33,7 +33,8 @@
     "billing:setup": "node scripts/setup-billing.mjs",
     "test:e2e:billing": "node scripts/billing-e2e.mjs",
     "email:setup": "node scripts/setup-email.mjs",
-    "test:sandbox": "node --env-file=.dev.vars.dev node_modules/vitest/vitest.mjs run --config vitest.sandbox.config.ts"
+    "test:sandbox": "node --env-file=.dev.vars.dev node_modules/vitest/vitest.mjs run --config vitest.sandbox.config.ts",
+    "test:sandbox:browser": "node --env-file=.dev.vars.dev scripts/sandbox-browser.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "5.9.2",

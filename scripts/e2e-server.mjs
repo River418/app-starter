@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile, rm } from "node:fs/promises";
+import { mkdir, readFile, writeFile, rm, chmod } from "node:fs/promises";
 import { resolve } from "node:path";
 import { createHash, randomUUID } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
@@ -7,7 +7,14 @@ import config from "../app.config.ts";
 import { normalizeBilling } from "../src/shared/billing-config.ts";
 import { digest } from "./billing-catalog.mjs";
 import { startStripeSubstitute } from "../tests/support/stripe-server.mjs";
+import Stripe from "stripe";
+import { syncCatalog, apiVersion } from "./billing-catalog.mjs";
 const root = process.cwd();
+if (
+  process.env.APP_STARTER_REAL_STRIPE_E2E &&
+  (process.env.APP_STARTER_BILLING_E2E || process.env.STRIPE_TEST_API_URL)
+)
+  throw new Error("Choose a real provider or a substitute, never both");
 const statePath = resolve(".local/e2e-workers");
 if (
   statePath !== resolve(root, ".local", "e2e-workers") ||
@@ -22,7 +29,9 @@ if (!new URL(auth.API_URL).hostname.match(/^(localhost|127\.0\.0\.1)$/))
 await writeFile(
   ".dev.vars.e2e",
   `SUPABASE_URL="http://localhost:55321"\nSUPABASE_PUBLISHABLE_KEY="${auth.PUBLISHABLE_KEY || auth.ANON_KEY}"\nSUPABASE_SECRET_KEY="${auth.SECRET_KEY || auth.SERVICE_ROLE_KEY}"\n`,
+  { mode: 0o600 },
 );
+await chmod(".dev.vars.e2e", 0o600);
 if (process.env.APP_STARTER_BILLING_E2E) {
   await startStripeSubstitute();
   const vars = await readFile(".dev.vars.e2e", "utf8");
@@ -30,6 +39,26 @@ if (process.env.APP_STARTER_BILLING_E2E) {
     ".dev.vars.e2e",
     vars +
       'STRIPE_SECRET_KEY="sk_test_local_browser_fixture"\nSTRIPE_WEBHOOK_SECRET="whsec_local_browser_fixture"\nSTRIPE_TEST_API_URL="http://127.0.0.1:55431"\n',
+  );
+}
+if (process.env.APP_STARTER_REAL_STRIPE_E2E) {
+  const key = process.env.STRIPE_SECRET_KEY,
+    secret = process.env.STRIPE_WEBHOOK_SECRET;
+  if (!key || !secret || !process.env.STRIPE_SANDBOX_ACCOUNT_ID)
+    throw new Error(
+      "Dedicated Sandbox key, account and listener secret required",
+    );
+  const stripe = new Stripe(key, { apiVersion }),
+    account = await stripe.accounts.retrieveCurrent(),
+    balance = await stripe.balance.retrieve();
+  if (balance.livemode || account.id !== process.env.STRIPE_SANDBOX_ACCOUNT_ID)
+    throw new Error("Refuse a live or different Stripe account");
+  const vars = await readFile(".dev.vars.e2e", "utf8");
+  await writeFile(
+    ".dev.vars.e2e",
+    vars +
+      `STRIPE_SECRET_KEY=${JSON.stringify(key)}\nSTRIPE_WEBHOOK_SECRET=${JSON.stringify(secret)}\n`,
+    { mode: 0o600 },
   );
 }
 const runId = randomUUID();
@@ -79,5 +108,45 @@ if (process.env.APP_STARTER_BILLING_E2E) {
     "--file",
     ".local/e2e-billing.sql",
   ]);
+}
+if (process.env.APP_STARTER_REAL_STRIPE_E2E) {
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion });
+  const quote = (value) => `'${String(value).replaceAll("'", "''")}'`;
+  const save = async (state, prices) => {
+    const current = {
+      ...state,
+      key_hash: digest(process.env.STRIPE_SECRET_KEY),
+      secret_hash: digest(process.env.STRIPE_WEBHOOK_SECRET),
+      endpoint_id: "stripe_cli_listener",
+      ready: 1,
+    };
+    const sql = [
+      `INSERT INTO billing_state(id,${Object.keys(current).join(",")}) VALUES(1,${Object.values(current).map(quote).join(",")}) ON CONFLICT(id) DO UPDATE SET ${Object.keys(
+        current,
+      )
+        .map((k) => `${k}=excluded.${k}`)
+        .join(",")};`,
+      ...prices.map(
+        (p) =>
+          `INSERT OR IGNORE INTO billing_prices(${Object.keys(p).join(",")}) VALUES(${Object.values(p).map(quote).join(",")});`,
+      ),
+    ];
+    await writeFile(".local/e2e-real-stripe.sql", sql.join("\n"));
+    await runTool("wrangler", [
+      "d1",
+      "execute",
+      "DB",
+      ...args,
+      "--file",
+      ".local/e2e-real-stripe.sql",
+    ]);
+  };
+  save.origin = "http://localhost:5173";
+  await syncCatalog(stripe, {
+    slug: config.slug,
+    environment: "e2e",
+    billing: normalizeBilling(config.billing),
+    save,
+  });
 }
 await runTool("vite", [], { env: { CLOUDFLARE_ENV: "e2e" } });

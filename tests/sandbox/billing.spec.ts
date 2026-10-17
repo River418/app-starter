@@ -65,7 +65,7 @@ it("real scoped catalog, Checkout/Portal creation, paid invoice grant, cancellat
     billing: settings(),
     save,
   });
-  await syncCatalog(stripe, {
+  const repeatedCatalog = await syncCatalog(stripe, {
     slug: config.slug,
     environment: "test",
     billing: settings(),
@@ -73,6 +73,40 @@ it("real scoped catalog, Checkout/Portal creation, paid invoice grant, cancellat
     save,
   });
   expect(rows.size).toBe(2);
+  expect(repeatedCatalog.prices.map((p: any) => p.price_id)).toEqual(
+    first.prices.map((p: any) => p.price_id),
+  );
+  const originalMonthly = first.prices.find(
+    (p: any) => p.plan_key === "monthly",
+  )!;
+  const changed = await syncCatalog(stripe, {
+    slug: config.slug,
+    environment: "test",
+    billing: {
+      ...settings(),
+      plans: settings().plans.map((p) =>
+        p.key === "monthly" ? { ...p, amountMinor: 1290, credits: 130 } : p,
+      ),
+    },
+    previous: repeatedCatalog.state,
+    save,
+  });
+  expect(
+    changed.prices.find((p: any) => p.plan_key === "monthly")!.price_id,
+  ).not.toBe(originalMonthly.price_id);
+  expect(
+    (await stripe.prices.retrieve(originalMonthly.price_id)).unit_amount,
+  ).toBe(990);
+  const restored = await syncCatalog(stripe, {
+    slug: config.slug,
+    environment: "test",
+    billing: settings(),
+    previous: changed.state,
+    save,
+  });
+  expect(
+    restored.prices.find((p: any) => p.plan_key === "monthly")!.price_id,
+  ).toBe(originalMonthly.price_id);
   const state = {
     ...saved,
     key_hash: await hash(env.STRIPE_SECRET_KEY!),
