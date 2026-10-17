@@ -79,10 +79,18 @@ function fixture(t, { stripeWaiver = false } = {}) {
       add('threads', ids.map(id => ({ thread: { id: `fixture-${id}` } })));
     }
   }
+  function recordMeasurement(gate) {
+    const report = reports[gate], file = `artifacts/gates/${gate}-verdict.json`;
+    const raw = JSON.stringify(Object.fromEntries(['gate','sourceCommit','environment','platformPlan','status','cases','blockers'].map(key => [key,report[key]])));
+    writeFileSync(path.join(root,file),raw);
+    report.evidence = report.evidence.filter(e => e.role !== 'assertion-verdict');
+    report.evidence.push({ path:file,sha256:hash(raw),source:'probe',role:'assertion-verdict' });
+  }
+  Object.keys(reports).forEach(recordMeasurement);
   function save() { for (const [gate, report] of Object.entries(reports)) writeFileSync(path.join(root, `artifacts/gates/${gate}.json`), JSON.stringify(report)); }
   function run() { return spawnSync(process.execPath, [script, '--root', root, '--evidence-dir', 'artifacts/gates'], { encoding: 'utf8' }); }
   save();
-  return { root, reports, save, run };
+  return { root, reports, save, run, recordMeasurement };
 }
 
 test('accepts three complete cloud reports tied to unchanged committed probe code', (t) => {
@@ -180,6 +188,7 @@ test('permits only the explicitly approved Stripe Sandbox exception and labels i
   Object.assign(f.reports.deployment, { stripeMode: 'waived', stripeException: 'stripe-sandbox-2026-10-17', paymentValidation: 'unverified', stripeAccounts: [] });
   f.reports.deployment.evidence = f.reports.deployment.evidence.filter(x => x.source !== 'stripe');
   for (const entry of f.reports.deployment.cases.filter(x => ['stripe-sandbox-reuse', 'price-versioning'].includes(x.id))) { entry.status = 'waived'; entry.cloudIds = []; entry.actual = 'Not executed; explicitly waived by user'; }
+  f.recordMeasurement('deployment');
   f.save();
   const result = f.run();
   assert.equal(result.status, 0, result.stderr);
@@ -222,4 +231,17 @@ test('recomputes CPU and browser outcomes from this run even if report remains p
   assert.equal(result.status, 1);
   assert.match(result.stderr, /CPU sample.*disagrees/);
   assert.match(result.stderr, /actual browser evidence did not pass/);
+});
+
+test('cannot hide a failed deployment or recovery measurement by changing only the report', t => {
+  const f = fixture(t);
+  for (const gate of ['deployment','recovery']) {
+    const report = f.reports[gate], entry = report.evidence.find(e => e.role === 'assertion-verdict');
+    const raw = JSON.stringify({ ...report, status: 'fail' });
+    if (entry) { writeFileSync(path.join(f.root,entry.path),raw); entry.sha256 = hash(raw); }
+  }
+  f.save(); const result = f.run();
+  assert.equal(result.status,1);
+  assert.match(result.stderr,/deployment:.*measurement verdict/);
+  assert.match(result.stderr,/recovery:.*measurement verdict/);
 });

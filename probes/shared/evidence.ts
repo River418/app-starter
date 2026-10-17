@@ -22,7 +22,7 @@ export interface GateReport {
   mode: 'local' | 'cloud';
   executedAt: string;
   cases: GateCase[];
-  evidence: { path: string; sha256: string; source: 'cloudflare' | 'stripe' | 'browser' }[];
+  evidence: { path: string; sha256: string; source: 'cloudflare' | 'stripe' | 'browser' | 'probe'; role?: string }[];
   blockers?: string[];
   stripeMode?: 'sandbox' | 'waived';
   stripeException?: 'stripe-sandbox-2026-10-17';

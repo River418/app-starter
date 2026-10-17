@@ -86,6 +86,12 @@ export function verifyReports(root, directory) {
       } catch { fail(gate, 'raw evidence file missing'); }
     }
     const observedIds = new Set();
+    const verdicts = verified.filter(e => e.role === 'assertion-verdict');
+    try {
+      if (verdicts.length !== 1) throw Error();
+      const verdict = JSON.parse(verdicts[0].raw);
+      if (verdict.status !== 'pass' || ['gate','sourceCommit','environment','platformPlan','status','cases','blockers'].some(key => JSON.stringify(verdict[key]) !== JSON.stringify(report[key]))) throw Error();
+    } catch { fail(gate, 'measurement verdict missing, failed or disagrees with report'); }
     const collect = v => { if (typeof v === 'string') observedIds.add(v); else if (v && typeof v === 'object') Object.values(v).forEach(collect); };
     for (const entry of verified) { try { collect(JSON.parse(entry.raw)); } catch { collect(parseTailFrames(entry.raw)); } }
     for (const entry of found) if (entry.status === 'pass' && !entry.cloudIds?.some(id => observedIds.has(id))) fail(gate, `case ${entry.id} identifiers absent from actual evidence`);

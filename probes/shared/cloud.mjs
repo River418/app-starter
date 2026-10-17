@@ -106,6 +106,11 @@ export async function openProbe(environment = 'dev', gate = 'recovery') {
       await writeFile(journalPath, JSON.stringify(journal, null, 2));
       if (git('status', '--porcelain') || git('rev-parse', 'HEAD') !== sourceCommit) throw Error('Probe source changed during measurement; raw evidence preserved without a pass report');
       const report = { schemaVersion: 1, gate, mode: 'cloud', platformPlan: 'free', sourceCommit, cleanWorkingTree: true, lockfileSha256: sha256(await readFile(resolve(root, 'package-lock.json'))), versionsSha256: sha256(await readFile(resolve(root, 'probes/versions.json'))), environment: target.name, executedAt: new Date().toISOString(), ...gateReport, evidence: [...(gateReport.evidence ?? []), { path: relative(root, journalPath).replaceAll('\\', '/'), sha256: sha256(await readFile(journalPath)), source: 'cloudflare', role: 'requests' }] };
+      const verdictPath = resolve(evidenceDir, 'assertion-verdict.json');
+      const verdict = Object.fromEntries(['gate','sourceCommit','environment','platformPlan','status','cases','blockers'].map(key => [key,report[key]]));
+      const verdictRaw = JSON.stringify(verdict,null,2);
+      await writeFile(verdictPath,verdictRaw);
+      report.evidence.push({ path: relative(root,verdictPath).replaceAll('\\','/'), sha256: sha256(verdictRaw), source: 'probe', role: 'assertion-verdict' });
       await mkdir(resolve(root, 'artifacts/gates'), { recursive: true });
       await writeFile(resolve(root, `artifacts/gates/${gate}.json`), JSON.stringify(report, null, 2) + '\n');
       return report;
