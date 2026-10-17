@@ -4,7 +4,9 @@
   "main": "src/index.ts",
   "compatibility_date": "2026-10-17",
   "compatibility_flags": [
-    "nodejs_compat"
+    "nodejs_compat",
+    "enable_request_signal",
+    "request_signal_passthrough"
   ],
   "observability": {
     "enabled": true,
@@ -44,6 +46,11 @@
       "binding": "RUN_WORKFLOW",
       "name": "cfas-probe-local-recovery",
       "class_name": "RecoveryProbeWorkflow"
+    },
+    {
+      "binding": "MODEL_WORKFLOW",
+      "name": "cfas-probe-local-model",
+      "class_name": "ModelProbeWorkflow"
     }
   ],
   "env": {
@@ -78,12 +85,20 @@
           "binding": "RUN_WORKFLOW",
           "name": "cfas-probe-418-20261017-dev-recovery",
           "class_name": "RecoveryProbeWorkflow"
+        },
+        {
+          "binding": "MODEL_WORKFLOW",
+          "name": "cfas-probe-418-20261017-dev-model",
+          "class_name": "ModelProbeWorkflow"
         }
       ],
       "triggers": {
         "crons": [
           "* * * * *"
         ]
+      },
+      "ai": {
+        "binding": "AI"
       }
     },
     "prod": {
@@ -117,12 +132,20 @@
           "binding": "RUN_WORKFLOW",
           "name": "cfas-probe-418-20261017-prod-recovery",
           "class_name": "RecoveryProbeWorkflow"
+        },
+        {
+          "binding": "MODEL_WORKFLOW",
+          "name": "cfas-probe-418-20261017-prod-model",
+          "class_name": "ModelProbeWorkflow"
         }
       ],
       "triggers": {
         "crons": [
           "* * * * *"
         ]
+      },
+      "ai": {
+        "binding": "AI"
       }
     }
   },
@@ -130,5 +153,17 @@
     "crons": [
       "* * * * *"
     ]
+  },
+  "assets": {
+    "directory": "../budget-protocol/dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": [
+      "/api",
+      "/api/*"
+    ]
+  },
+  "ai": {
+    "binding": "AI"
   }
 }

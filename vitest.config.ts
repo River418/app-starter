@@ -3,6 +3,7 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   plugins: [cloudflareTest(async () => ({
+    remoteBindings: false,
     wrangler: { configPath: './probes/deployment/wrangler.jsonc' },
     miniflare: {
       bindings: {
@@ -15,6 +16,7 @@ export default defineConfig({
   }))],
   test: {
     include: ['probes/**/*.spec.ts'],
+    exclude: ['**/browser.spec.ts'],
     setupFiles: ['./probes/setup.ts'],
     fileParallelism: false,
     testTimeout: 30000,

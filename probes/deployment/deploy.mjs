@@ -86,12 +86,21 @@ export async function deployProbe({ account, environment, subdomain, prepare = f
   const secretsPath = resolve(root, '.local/probes', environment, 'secrets.json');
   const common = ['--config', configPath, '--env', environment];
   let remoteSecretsConfigured = false;
-  try { remoteSecretsConfigured = JSON.parse(await wrangler(['secret', 'list', ...common], options)).some(x => x.name === 'BETTER_AUTH_SECRET'); }
+  let remoteSecretNames = [];
+  try { remoteSecretNames = JSON.parse(await wrangler(['secret', 'list', ...common], options)).map(x => x.name); remoteSecretsConfigured = remoteSecretNames.includes('BETTER_AUTH_SECRET'); }
   catch (error) { if (!/\b10007\b/.test(error.stderr ?? '')) throw error; }
-  await ensureSecrets(secretsPath, { remoteSecretsConfigured });
+  const secrets = await ensureSecrets(secretsPath, { remoteSecretsConfigured });
+  if (environment === 'dev' && !secrets.STRIPE_WEBHOOK_SECRET) {
+    if (remoteSecretNames.includes('STRIPE_WEBHOOK_SECRET')) throw Error('Signing secret is unknown locally; restore it before declaring webhook readiness');
+    secrets.STRIPE_WEBHOOK_SECRET = `whsec_probe_${randomBytes(32).toString('hex')}`;
+    await writeFile(secretsPath, JSON.stringify(secrets, null, 2) + '\n', { mode: 0o600 });
+  }
+  const built = await exec(process.execPath, [resolve(root, 'node_modules/vite/bin/vite.js'), 'build', '--config', resolve(root, 'probes/budget-protocol/vite.config.ts')], { cwd: root, maxBuffer: 8 * 1024 * 1024 });
+  await writeFile(resolve(evidenceDir, `${Date.now()}-frontend-build.log`), built.stdout + built.stderr);
   await wrangler(['deploy', ...common, '--dry-run', '--autoconfig=false', '--outdir', resolve(root, '.local/build', environment)], options);
   await wrangler(['d1', 'migrations', 'apply', 'DB', ...common, '--remote'], options);
-  const output = await wrangler(['deploy', ...common, '--autoconfig=false', '--secrets-file', secretsPath, ...(title ? ['--var', `PROBE_TITLE:${title}`] : [])], options);
+  const { stdout: sourceCommit } = await exec('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' });
+  const output = await wrangler(['deploy', ...common, '--autoconfig=false', '--secrets-file', secretsPath, '--tag', `source-${sourceCommit.trim().slice(0,12)}`, '--var', `PROBE_SOURCE_COMMIT:${sourceCommit.trim()}`, ...(title ? ['--var', `PROBE_TITLE:${title}`] : [])], options);
   console.log(output.split('\n').filter(x => /workers.dev|Version ID|Workflow|Uploaded|Deployed/.test(x)).join('\n'));
 }
 

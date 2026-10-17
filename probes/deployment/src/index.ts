@@ -2,29 +2,36 @@ import { WorkflowEntrypoint, type WorkflowEvent, type WorkflowStep } from 'cloud
 import { timingSafeEqual } from 'node:crypto';
 import { Buffer } from 'node:buffer';
 import { Hono, type Context } from 'hono';
+import { bodyLimit } from 'hono/body-limit';
 import Stripe from 'stripe';
 import { z } from 'zod';
 import { createAuth } from './auth.ts';
 import { dispatchOutbox } from '../../recovery/src/outbox.ts';
 import { recovery } from '../../recovery/src/http.ts';
+import { modelProbe } from '../../budget-protocol/src/http.ts';
 export { RecoveryProbeWorkflow } from '../../recovery/src/RunWorkflow.ts';
+export { ModelProbeWorkflow } from '../../budget-protocol/src/ModelWorkflow.ts';
 
 export interface ProbeEnvironment {
   DB: D1Database;
   FILES: R2Bucket;
   BOOTSTRAP_WORKFLOW: Workflow<{ value: string }>;
   RUN_WORKFLOW: Workflow<{ runId: string }>;
+  MODEL_WORKFLOW: Workflow<{ threadId: string; prompt: string }>;
+  AI: Ai;
   PROBE_KEY: string;
   BETTER_AUTH_SECRET: string;
   BETTER_AUTH_URL: string;
   PROBE_ENV: string;
   PROBE_TITLE: string;
+  PROBE_SOURCE_COMMIT?: string;
   STRIPE_WEBHOOK_SECRET?: string;
 }
 type ProbeContext = Context<{ Bindings: ProbeEnvironment }>;
 
 const app = new Hono<{ Bindings: ProbeEnvironment }>();
 app.use('/api/*', async (c, next) => {
+  if (c.env.PROBE_SOURCE_COMMIT) c.header('x-probe-source-commit', c.env.PROBE_SOURCE_COMMIT);
   if (c.req.path === '/api/stripe/webhook') return next();
   const supplied = Buffer.from(c.req.header('x-probe-key') ?? '');
   const expected = Buffer.from(c.env.PROBE_KEY ?? '');
@@ -32,6 +39,8 @@ app.use('/api/*', async (c, next) => {
   if (supplied.length !== expected.length || !timingSafeEqual(supplied, expected)) return c.json({ error: 'Unauthorized' }, 401);
   await next();
 });
+app.use('/api/auth/*', bodyLimit({ maxSize: 4096, onError: c => c.json({ error: 'Auth input exceeds 4 KiB' }, 413) }));
+app.use('/api/stripe/webhook', bodyLimit({ maxSize: 16384, onError: c => c.json({ error: 'Webhook input exceeds 16 KiB' }, 413) }));
 
 app.get('/api/probe/status', async (c) => {
   const state = await c.env.DB.prepare('SELECT initialized FROM probe_state WHERE id = 1').first<{ initialized: number }>();
@@ -132,6 +141,7 @@ app.post('/api/stripe/webhook', async (c) => {
 });
 
 app.route('/api/probe/recovery', recovery);
+app.route('/api/probe/model', modelProbe);
 
 app.notFound((c) => c.json({ error: 'Not found' }, 404));
 app.onError((_error, c) => c.json({ error: 'Probe request failed' }, 500));

@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
+import { setTimeout as pause } from 'node:timers/promises';
 import { openProbe, root, sha256, startTail } from '../shared/cloud.mjs';
 
 const probe = await openProbe('dev', 'recovery');
@@ -38,9 +39,17 @@ async function check(id, description, test) {
 }
 let failure;
 try {
+  // Cron configuration can take up to 15 minutes to propagate. Start the recovery
+  // stopwatch only after this deployment has received a real Scheduled event.
+  const readinessStarted = Date.now();
+  while (!tail.frames().some(f => f.event?.cron === '* * * * *' && f.scriptName === probe.target.name)) {
+    if (Date.now() - readinessStarted > 900000) throw Error('Real Cron not ready within its documented propagation window');
+    await pause(1000);
+  }
+  console.log('real-scheduled-readiness: observed');
   await check('commit-before-dispatch', 'Real minute Scheduled recovers a committed, undispatched run within 150 seconds', async () => {
     const started = Date.now(), id = await create('undispatched', { mode: 'commit-before-dispatch' });
-    assert.equal((await get(id)).run.state, 'queued');
+    assert.equal(probe.journal.findLast(x => x.response?.run?.id === id && x.method === 'POST')?.response.run.state, 'queued');
     const result = await wait(id);
     assert.equal(result.run.state, 'succeeded');
     assert.ok(Date.now() - started <= 150000);

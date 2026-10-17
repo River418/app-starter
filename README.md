@@ -2,7 +2,7 @@
 
 An independent, open-source starter for validating web and agent applications with a small amount of configuration on Cloudflare.
 
-**Status: Phase 1 probes in development.** The application template has not been implemented. Deployment, runtime budget, and recovery probes must pass on real cloud services before template construction starts.
+**Status: Phase 1 probes; Phase 2 deferred by the user.** The application template has not been implemented. Workers Free has failed the default Better Auth password CPU budget. The user chose to retain the design and finish the other probes before revisiting template construction. [Current validation status](docs/validation/current-status.md).
 
 ## Design
 
@@ -21,10 +21,16 @@ The documents are currently written in Chinese. Probe tooling is available; appl
 npm ci
 npm test
 npm run type-check
+npm run probe:build
+npm run probe:deployment -- --local
+npm run probe:budget-protocol -- --local
+npm run probe:recovery -- --local
 npm run verify:gate
 ```
 
-The tests use disposable local Workers, D1, R2, and Workflows. They do not establish cloud readiness. `verify:gate` fails until all three actual cloud reports and their supporting evidence exist. Copy `.dev.vars.example` to the ignored `.dev.vars` for the two independent Stripe Sandbox keys; never commit them.
+The tests use disposable local Workers, D1, R2, and Workflows, with deterministic model adapters and remote bindings disabled. They require no Cloudflare credentials and do not establish cloud readiness. `verify:gate` intentionally fails while any required real-cloud gate fails or lacks evidence. [Running the explicit cloud probes](docs/validation/running-probes.md).
+
+The user waived unavailable Stripe Sandbox synchronization/price checks. This is a named exception, not a payment pass. The current probes verify raw-body HMAC signatures, event deduplication, and refusal when a signing secret is unavailable; they do not prove a real Stripe integration.
 
 ## First milestone
 

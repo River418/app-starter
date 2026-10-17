@@ -73,15 +73,16 @@ export async function openProbe(environment = 'dev', gate = 'recovery') {
   let cookie = '';
   try { cookie = JSON.parse(await readFile(resolve(secretDir, 'session.json'), 'utf8')).cookie; } catch { /* first invocation */ }
   const journal = [];
-  async function request(path, { method = 'GET', body, acceptFailure = false, auth = true, headers = {} } = {}) {
+  async function request(path, { method = 'GET', body, acceptFailure = false, auth = true, storeSession = true, headers = {} } = {}) {
     const invocation = crypto.randomUUID();
-    const response = await fetch(base + path, { method, headers: { 'x-probe-key': secrets.PROBE_KEY, 'x-probe-invocation': invocation, origin: base, ...(auth && cookie ? { cookie } : {}), ...(body !== undefined ? { 'content-type': 'application/json' } : {}), ...headers }, ...(body !== undefined ? { body: typeof body === 'string' ? body : JSON.stringify(body) } : {}) });
+    const response = await fetch(base + path, { method, signal: AbortSignal.timeout(20000), headers: { 'x-probe-key': secrets.PROBE_KEY, 'x-probe-invocation': invocation, origin: base, ...(auth && cookie ? { cookie } : {}), ...(body !== undefined ? { 'content-type': 'application/json' } : {}), ...headers }, ...(body !== undefined ? { body: typeof body === 'string' ? body : JSON.stringify(body) } : {}) });
     const text = await response.text();
     let data; try { data = JSON.parse(text); } catch { data = text; }
-    journal.push({ at: new Date().toISOString(), path, method, status: response.status, invocation, ray: response.headers.get('cf-ray'), response: redact(data) });
+    journal.push({ at: new Date().toISOString(), path, method, status: response.status, invocation, ray: response.headers.get('cf-ray'), workerCommit: response.headers.get('x-probe-source-commit'), response: redact(data) });
+    if (response.headers.get('x-probe-source-commit') !== sourceCommit) throw Error('Deployed probe source does not match the clean local commit');
     if (!response.ok && !acceptFailure) throw Error(`Cloud probe ${method} ${path} returned ${response.status}`);
     const cookies = response.headers.getSetCookie();
-    if (cookies.length && response.ok) { cookie = cookies.map(x => x.split(';')[0]).join('; '); await writeFile(resolve(secretDir, 'session.json'), JSON.stringify({ cookie })); }
+    if (storeSession && cookies.length && response.ok) { cookie = cookies.map(x => x.split(';')[0]).join('; '); await writeFile(resolve(secretDir, 'session.json'), JSON.stringify({ cookie })); }
     return { data, status: response.status, ray: response.headers.get('cf-ray'), invocation };
   }
   const existing = await request('/api/auth/get-session');
@@ -103,6 +104,7 @@ export async function openProbe(environment = 'dev', gate = 'recovery') {
     async save(gateReport) {
       const journalPath = resolve(evidenceDir, 'requests.json');
       await writeFile(journalPath, JSON.stringify(journal, null, 2));
+      if (git('status', '--porcelain') || git('rev-parse', 'HEAD') !== sourceCommit) throw Error('Probe source changed during measurement; raw evidence preserved without a pass report');
       const report = { schemaVersion: 1, gate, mode: 'cloud', platformPlan: 'free', sourceCommit, cleanWorkingTree: true, lockfileSha256: sha256(await readFile(resolve(root, 'package-lock.json'))), versionsSha256: sha256(await readFile(resolve(root, 'probes/versions.json'))), environment: target.name, executedAt: new Date().toISOString(), ...gateReport, evidence: [...(gateReport.evidence ?? []), { path: relative(root, journalPath).replaceAll('\\', '/'), sha256: sha256(await readFile(journalPath)), source: 'cloudflare' }] };
       await mkdir(resolve(root, 'artifacts/gates'), { recursive: true });
       await writeFile(resolve(root, `artifacts/gates/${gate}.json`), JSON.stringify(report, null, 2) + '\n');

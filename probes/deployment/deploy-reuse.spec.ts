@@ -1,6 +1,7 @@
 import { env, exports as worker } from 'cloudflare:workers';
 import { introspectWorkflowInstance } from 'cloudflare:test';
 import { describe, it, expect } from 'vitest';
+import Stripe from 'stripe';
 
 const origin = 'http://probe.local';
 function call(route: string, options: RequestInit = {}) {
@@ -65,5 +66,19 @@ describe('real local Worker, D1, R2 and Workflow deployment contract', () => {
     const response = await call('/api/stripe/webhook', { method: 'POST', body: json({ id: 'evt_unverified', livemode: false }), headers: { 'stripe-signature': 'invalid' } });
     expect(response.status).toBe(400);
     expect((await env.DB.prepare('SELECT count(*) AS n FROM probe_stripe_events').first<{ n: number }>())?.n).toBe(0);
+  });
+
+  it('verifies real HMAC signatures, deduplicates test events and rejects signed live events', async () => {
+    for (const live of [false, false, true]) {
+      const payload = json({ id: live ? 'evt_live_probe' : 'evt_signed_probe', type: 'checkout.session.completed', livemode: live, data: { object: { id: 'cs_synthetic_cryptography_probe' } } });
+      const signature = await Stripe.webhooks.generateTestHeaderStringAsync({ payload, secret: env.STRIPE_WEBHOOK_SECRET, cryptoProvider: Stripe.createSubtleCryptoProvider() });
+      expect((await call('/api/stripe/webhook', { method: 'POST', body: payload, headers: { 'stripe-signature': signature } })).status).toBe(live ? 400 : 200);
+    }
+    expect(await env.DB.prepare('SELECT count(*) FROM probe_stripe_events').first('count(*)')).toBe(1);
+  });
+
+  it('rejects auth and webhook bodies beyond their declared CPU input boundaries', async () => {
+    expect((await call('/api/auth/sign-in/email', { method: 'POST', body: json({ padding: 'x'.repeat(4097) }) })).status).toBe(413);
+    expect((await call('/api/stripe/webhook', { method: 'POST', body: 'x'.repeat(16385) })).status).toBe(413);
   });
 });
