@@ -38,6 +38,26 @@ Invite mode is the default and does not require a mail provider. Public signup r
 
 Vite builds browser assets and a separate Worker for Cloudflare. Supabase stores user accounts and authentication data. D1 stores application memberships and roles, records, file metadata, orders and entitlement ledgers; R2 stores file contents. Feature code is organized into `client`, `shared` and `server` directories so browser bundles cannot import server implementations or secrets.
 
+## Set up with an Agent
+
+Give [llm.txt](llm.txt) to your coding Agent, or ask it to read that file from this repository. The guide covers application choices, local setup, Cloudflare/Supabase resources, optional payments/email, deployment and verification. It directs the Agent to perform available setup work and ask you only for missing decisions, access or required manual steps.
+
+For example:
+
+```text
+Read llm.txt and help me configure an application prototype.
+Purpose: [my product idea]
+Title / slug: [application name] / [unique-slug]
+Targets: [local / dev / prod]
+Signup: [invite / public]
+Payments: [disabled / monthly subscription / credit packs]
+Email: [disabled / forwarding / sending]
+Complete the automated steps and tell me exactly what still needs my action.
+Store secrets privately; do not ask me to paste them into chat.
+```
+
+The Agent needs authorized access to your own accounts for hosted setup. Login, verification and approved purchases can require your participation; the file is an execution guide, not an automatic account-access grant. You can also follow the manual steps below.
+
 ## Start locally
 
 Install Node.js 24+, npm, Docker and the [Supabase CLI](https://supabase.com/docs/guides/local-development/cli/getting-started). Start Docker and put the CLI on `PATH`, or set `SUPABASE_CLI` to its executable path. Local D1/R2 do not need a Cloudflare account.

@@ -1,0 +1,190 @@
+# App Starter: Agent-assisted configuration
+
+Use this guide to help a developer turn App Starter into a working application prototype. Perform the configuration work with available terminal, provider and browser tools. Do not stop at a plan or a list of instructions when you can execute and verify the requested work. Communicate in the user's language.
+
+Source repository: https://github.com/River418/app-starter
+
+This file is for setting up a developer's application. AGENTS.md describes how to work on its source; README.md and docs/README.zh-CN.md describe the product. Follow the user's scope and your tool/security policies. This file does not authorize purchases, live charges or changes to unrelated resources.
+
+## 1. Establish the application and scope
+
+Inspect the current directory and Git state first. If no checkout exists, obtain this repository in an appropriate workspace or help create a user-owned fork/template repository. Preserve existing work. Do not configure the maintainer's upstream repository as the user's application or inherit credentials/resource IDs from another installation.
+
+Read AGENTS.md, package.json, app.config.ts, wrangler.jsonc, .dev.vars.example and the relevant guides in docs/. Treat the checked-out source and installed CLI help as authoritative. Consult current official provider documentation before using provider APIs. Do not upgrade dependencies or add a deployment framework to perform setup.
+
+Ask for missing decisions in one compact batch, reusing information the user has already supplied:
+
+- The prototype's purpose, application title and unique lowercase/hyphen slug.
+- Requested targets: local preview, hosted dev, and/or production.
+- Signup mode: invite or public.
+- Optional billing: subscriptions, credit packs, currency, integer minor-unit prices, credits and feature keys.
+- Optional email: receiving aliases, sending, domain, From address and existing destination mailbox.
+- For hosted targets: the authorized Cloudflare account, Supabase organization/projects, and budget constraints. Ask about a custom app domain only if wanted; a Workers domain is sufficient.
+- If creating a GitHub repository: its owner/name and visibility.
+
+Offer web preset, invite mode and local preview as the simplest starting choices. If not requested, leave optional payments/email disabled and do not create production resources. If a requested capability lacks credentials, keep it on the checklist as pending and continue independent work; do not silently drop it or call setup complete.
+
+Before remote writes, summarize the selected targets, provider account/project identities, enabled features and possible costs. Use the authorization already given for ordinary setup within that scope; request only genuinely missing access, decisions or approval. A CLI's default account or the first project a connector lists is not evidence that it is the right destination.
+
+## 2. Preserve the architecture
+
+- Cloudflare serves browser assets and runs the Hono Worker API.
+- Supabase Auth and its PostgreSQL database manage user accounts and authentication. The application uses Supabase APIs, not a new custom password system.
+- D1 stores application member mappings/roles/statuses, records, file metadata, orders, audits and entitlement ledgers. R2 stores private attachment contents.
+- Stripe supplies optional payments; Resend supplies optional outbound email; Cloudflare Email Routing forwards domain aliases to an existing mailbox.
+
+Do not move the application schema into Supabase just because it supplies the account database. Do not describe the whole system as hosted on Cloudflare. Use preset web for the existing application; a separate agent entry is not an implemented chat/Workflow/usage-settlement product.
+
+## 3. Keep configuration and credentials in the right places
+
+Configuration map:
+
+- app.config.ts: title, slug, preset, authMode, maxFileBytes, optional billing/email. These are shared build-time application choices, not separate per-environment configuration files.
+- wrangler.jsonc: selected env.dev/env.prod account_id, Worker name, public vars, D1/R2 mappings and schedules.
+- .dev.vars: ignored local-runtime credentials.
+- .dev.vars.dev / .dev.vars.prod: ignored environment-specific input to provider setup tools, or equivalent process/CI environment variables.
+- Worker secrets: deployed server credentials. Writing a local environment file does not publish a Worker secret.
+
+Supabase URL and publishable key may be public. Supabase secret, Stripe secret/signing keys and Resend keys must stay server-side. Never put them in app.config.ts or VITE_* variables. Verify private paths are ignored before writing them. Use tool-private input, secret stores or CLI stdin; do not put secrets in command arguments, chat, PRs or public logs. Do not print entire environment files to discover whether a field is present.
+
+Use only the user's authorized provider accounts. Do not copy the maintainer's .local/, .dev.vars files, signing secrets or validation resources. Preserve global CLI profiles where possible; scope credentials to the relevant process/environment. Back up response-only signing secrets and private setup journals securely, outside version control.
+
+## 4. Customize and preview locally
+
+Update app.config.ts with the agreed name, slug, web preset, signup mode and upload limit. Enable only the requested billing/email options using the schemas and examples in docs/billing.md and docs/email.md. Keep both interface locales consistent when changing user-visible text. Do not replace the example records feature with new product functionality unless that is part of the request.
+
+Check Node.js 24+, npm, Docker and the official Supabase CLI. SUPABASE_CLI may point to its executable. Use the lockfile:
+
+    npm ci
+    npm run auth:local:start
+    npm run dev
+
+The local app is http://localhost:5173 and Mailpit is http://localhost:55324. The Auth tool manages only its isolated app-starter-e2e project. It creates .dev.vars only if absent; an existing empty/stale file is preserved. If needed, safely reconcile its local Auth fields with the generated private local status file, preserving unrelated values.
+
+After local migrations have run, generate the administrator link in another terminal:
+
+    npm run bootstrap:token -- local
+
+Have the user open the private .local/bootstrap-local.txt link and complete administrator setup. Do not print the bearer link. It expires after 30 minutes. An already issued/claimed/completed bootstrap must be resumed or handled with existing account recovery, not reset to promote another account.
+
+If Docker or local Auth is unavailable, report the missing dependency, continue configuration/type/build work, and use a hosted dev target only if authorized. Do not point integration tests at hosted Auth as a workaround.
+
+## 5. Prepare hosted identity and application resources
+
+For every requested hosted target, select or create its dedicated Supabase project in the confirmed organization. Do not reuse an unrelated project or buy capacity automatically when free quotas are exhausted. Dev and prod need different Supabase projects, D1 databases, R2 buckets and credentials. Only create the environments requested.
+
+Determine the real target Worker name and Workers subdomain or approved custom domain. APP_ORIGIN must be its exact HTTPS origin, without a path or trailing slash. Do not invent a workers.dev subdomain. Use a stable slug before resource preparation; existing mappings/names are intentionally reused, so inspect them before deciding to reuse resources.
+
+Configure Supabase in each selected project:
+
+- Enable the email/password provider and email confirmation; disable anonymous sign-ins.
+- Invite mode: disable public signup. Administrators issue application invitation links; SMTP is not needed for that flow.
+- Public mode: enable signup and configure custom SMTP plus the supplied confirmation/recovery templates. Use TokenHash links to /auth/confirm with the appropriate type=email or type=recovery. Preserve the app's confirmation flow rather than using implicit-fragment URLs.
+- Set Site URL to APP_ORIGIN and allow its exact /auth/confirm redirect. Use a dedicated dev identity project for any additional localhost redirect.
+- Retrieve its URL, publishable key and server secret privately. No business tables or Data API exposure are required for this application's Auth integration.
+
+The application deploy script does not create the Supabase project or configure its URLs, SMTP or templates. Use authorized provider tools to do those steps when available; otherwise give the user the exact project page, fields and values needed, then continue unrelated work. Login, MFA, consent and mailbox verification may require the user. Never weaken confirmation or anonymous-user settings to get past deployment checks.
+
+Fill the selected wrangler.jsonc environment with account_id, vars.APP_ENV, APP_ORIGIN, SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY and AUTH_SETTINGS_CONFIRMED matching app.config.ts. Set AUTH_SETTINGS_CONFIRMED only after checking the actual settings; it is not proof that SMTP delivers mail. Match the shared application signup mode in each environment being deployed.
+
+Prepare Cloudflare using the existing tools (dev shown; substitute prod only for an authorized production target):
+
+    npx wrangler login
+    npm run deploy:dev -- --prepare
+    npx wrangler secret put SUPABASE_SECRET_KEY --config wrangler.jsonc --env dev
+
+Skip interactive login if suitable access already exists. Preparation creates/reuses one D1 and one private R2 bucket and saves non-secret mappings. Check their ownership/isolation, keep R2 private and commit the mappings to the user's application branch. Publishing the Supabase server secret is a separate step from local credential storage.
+
+## 6. Configure optional payments
+
+For requested billing, read docs/billing.md. Set billing in app.config.ts and put the user's own STRIPE_SECRET_KEY in ignored .dev.vars.dev (test/Sandbox) or .dev.vars.prod (live, only when explicitly requested). Inspect the account identity and livemode before any payment configuration. Use a dedicated managed Sandbox under the user's account for testing; do not fall back to an anonymous account when access is missing.
+
+No Price IDs need to be copied manually. Normal deployment runs billing setup after the application and migrations are deployed. It creates/reuses application-owned Products, immutable Prices, an explicit Portal configuration and an owned Webhook endpoint, publishes server-only Stripe secrets and checks signed readiness. For an already deployed application, setup can be retried with:
+
+    npm run billing:setup -- dev
+
+This standalone command needs the target already deployed and migrated. It does not replace deployment. Readiness challenges create no purchase and do not prove provider delivery. Preserve .local/billing/<env>/ private journals and webhook-secret backups; never overwrite a deployed endpoint secret with a local Stripe CLI listener secret or delete/recreate endpoints to hide a lost secret.
+
+Keep failed setup closed and explain missing permissions/keys precisely. Continue non-payment work while waiting for access. Assess the actual Cloudflare plan and CPU requirements; plan for Workers Paid with billing, but obtain approval before purchasing/upgrading. Successful HTTP responses are not CPU-budget evidence. Do not promise an entirely free application.
+
+## 7. Configure optional email
+
+For requested forwarding/sending, read docs/email.md and configure app.config.ts email options. A Cloudflare-managed domain is required for an alias such as support@example.com; an existing verified destination mailbox is sufficient, without buying a hosted mailbox. Without a domain, use the existing mailbox directly rather than claiming an arbitrary alias can be forwarded.
+
+Current automatic forwarding supports aliases on the Cloudflare zone apex, not receiving subdomains. Resend sending can use a verified subdomain. Prefer a separate sending subdomain so receiving and sending DNS do not compete. Sending and forwarding are independent choices.
+
+The current email:setup tool also resolves a sending domain against a DNS zone in the selected Cloudflare account, even for send-only setup. If that zone is not managed there, the current tool cannot automate that path. Use authorized Resend/DNS tools or provide exact manual steps for sender verification, then publish the runtime key and verify sending. Do not migrate DNS providers or remove existing records merely to satisfy the script.
+
+For the automatic setup path, provide selected-target inputs privately: CLOUDFLARE_API_TOKEN with the documented DNS/routing permissions, EMAIL_FORWARD_TO for forwarding, RESEND_SETUP_API_KEY for sending-domain setup and a separate domain-scoped sending RESEND_API_KEY for runtime use. A normal Wrangler login alone does not supply the email tool's API token. Forwarding alone needs no Resend key.
+
+    npm run email:setup -- dev
+    npx wrangler secret put RESEND_API_KEY --config wrangler.jsonc --env dev
+
+Run secret put only for enabled sending with an actual runtime key. The setup command safely reuses matching DNS/rules and stops on conflicts; investigate ownership instead of deleting other providers' records. The user may need to confirm a destination email. DNS/domain verification can remain pending: rerun after the provider's state changes rather than repeatedly issuing verification messages.
+
+For public signup, apply custom SMTP and templates inside that environment's Supabase project. The email command can write .local/email/<env>/supabase-smtp.private.json; it does not apply those fields to Supabase or automatically publish RESEND_API_KEY to the Worker. Only the sending key belongs in the Worker, not the full-access setup key. Treat SMTP credentials as secrets.
+
+Do not add a public arbitrary-send API for testing. Call the existing server helper only for an application-owned purpose and an authorized test recipient. Verify receipt separately from provider acceptance, DNS setup and SMTP configuration.
+
+## 8. Deploy and initialize the selected target
+
+When Auth preflight, resources and required secrets are ready:
+
+    npm run deploy:dev
+    npm run bootstrap:token -- dev
+
+Normal deployment validates configuration, actual Auth settings and dev/prod isolation; runs types/build; checks the emitted D1 binding, remote preset and server secret; applies migrations; deploys; checks health; and initializes billing if enabled. Do not disable guards to get a deployment through. Only Vite selects CLOUDFLARE_ENV: do not reapply --env or that variable to the flattened dist/worker/wrangler.json.
+
+The remote preset check permits a genuinely absent endpoint returning 404, not arbitrary network/auth failures. Diagnose the target origin, authorization and existing preset rather than bypassing the check. Keep forward-only migrations and existing data. Never reset a database to rerun setup.
+
+Bootstrap before inviting users or rolling out public signup. Have the user complete administrator creation through the private .local/bootstrap-dev.txt link; use the corresponding production file only when that target was requested. A listed Worker secret proves only existence: real login must verify it works. Do not recreate an already initialized administrator.
+
+If the user wants an application custom domain, configure the owned domain through authorized native tooling and reconcile APP_ORIGIN, Supabase Site URL/redirect and the owned Stripe endpoint. Follow the existing billing endpoint-repair procedure before changing an already configured endpoint URL; do not silently adopt/delete it. Record which environment and origin were actually verified.
+
+## 9. Verify real behavior, not just configuration files
+
+Use the isolated local Auth stack for local checks:
+
+    npm run type-check
+    npm test
+    npm run test:e2e
+    npm run test:e2e:public
+    npm run test:e2e:billing
+
+Run applicable suites, not unrelated operations by default. Mode-switching browser suites must run sequentially, away from dev servers, and restore their configuration. npm test does not include browser or real Sandbox tests. The billing browser suite uses a deterministic external payment substitute; it does not prove real Stripe delivery. npm run verify:gate evaluates archived probe evidence, not application onboarding as a whole.
+
+For each deployed environment, verify /api/health reports ok and /api/config contains only public settings; complete actual login/session and administrator authorization; exercise normal record creation/edit/search and private attachment upload/download. Use another controlled identity to check owner isolation and non-admin denial. Prefer real application pages/APIs over direct D1 fixtures for these acceptance checks.
+
+Public mode additionally needs actual confirmation and recovery messages received by a controlled mailbox and successful /auth/confirm flows. An Auth settings response cannot establish email delivery.
+
+If billing was requested, use the user's managed Sandbox and the opt-in npm run test:sandbox and npm run test:sandbox:browser only as documented. Real test purchases/refunds belong to a Sandbox-backed dev/testing target, never prod: prod accepts live credentials only. On the dev cloud target, verify an actual test purchase, natural Stripe-to-deployed-Worker delivery, persisted order/entitlement effects, duplicate-delivery prevention, cancellation and source-specific refund as applicable. Local CLI forwarding, synthetic signed events, setup challenges and API-created unpaid Checkout sessions each prove different things; report them separately.
+
+For production, perform only authorized non-charging configuration, session and access checks in this setup routine; do not initiate live purchases/refunds. If only prod was requested and no isolated Sandbox target is available, keep payment acceptance pending and offer a separate dev test target instead of putting test keys in prod or using real funds. Any live financial validation requires its own explicit authorization and applicable handoff.
+
+Scheduled recovery is bounded and normally runs every ten minutes; the payment return page polls for 60 seconds. A pending return is not permission to grant credits by hand. Inspect inbox/recovery status, wait for the actual schedule or use the documented authorized recovery path. Preserve native CPU observations separately from request/network elapsed time; missing samples remain missing.
+
+## 10. Repository integration and handoff
+
+Use a topic branch and PR for source/config changes. main accepts PRs only; do not push it directly, force-push it, delete it or bypass protection. For a new user-owned repository, configure its own active main ruleset requiring PRs/resolved conversations, blocking force pushes/deletion and having no bypass actors. Zero required approving reviews supports a sole maintainer; do not invent required CI checks that do not exist. Protection is not copied by cloning a template. If GitHub permissions/plan block enforcement, report it as pending rather than pretending it is enabled. Repository visibility must be the user's choice.
+
+Keep non-secret resource mappings and application choices reviewable. Keep secrets, cookies, one-time links, raw provider payloads and private journals out of Git/PR/chat. Do not delete provider resources after setup: they are the user's application. Stop only test/dev processes you started when they are no longer needed; use npm run auth:local:stop to preserve local Auth data.
+
+Finish with a concise handoff containing:
+
+- Application repository/branch/PR and the local workspace.
+- Requested features and what is configured for local/dev/prod.
+- Actual application URLs and resource identities, without keys or bearer links.
+- Commands/checks run and the exact scope of real-provider evidence.
+- Remaining user steps with specific provider pages, fields and expected results; distinguish disabled-by-choice from requested-but-blocked.
+- How to start/stop locally, redeploy, resume provider setup and recover from interrupted initialization.
+
+Do not label missing credentials, pending DNS/email verification, skipped tests or failed CPU checks as success. Continue all useful independent work, then report the concrete remaining dependency. The goal is a usable prototype in the requested scope, not merely a completed checklist.
+
+## Further reading
+
+- [Application overview](README.md)
+- [Source architecture and Agent working rules](AGENTS.md)
+- [Environment and authentication setup](docs/deployment.md)
+- [Payments and entitlements](docs/billing.md)
+- [Email routing, sending and SMTP](docs/email.md)
+- [Contribution and branch rules](CONTRIBUTING.md)

@@ -38,6 +38,26 @@ App Starter 是一个采用 MIT 许可证、帮助开发者快速建立应用原
 
 Vite 为 Cloudflare 分别构建浏览器资源和 Worker。Supabase 保存用户账号与认证数据；D1 保存应用成员与角色、记录、文件元数据、订单和权益账本，R2 保存文件内容。业务模块按 `client`、`shared`、`server` 拆分，防止服务端实现或密钥进入浏览器包。
 
+## 交给 Agent 配置
+
+将 [llm.txt](../llm.txt) 交给编程 Agent，或让它从本仓库读取该文件。指引覆盖应用选项、本地环境、Cloudflare/Supabase 资源、可选支付与邮件、部署和验证，要求 Agent 执行可用的配置操作，仅在缺少决策、访问权限或必须人工操作时找你补充。
+
+例如：
+
+```text
+阅读 llm.txt，帮助我配置一个应用原型。
+用途：[我的产品想法]
+名称 / slug：[应用名称] / [unique-slug]
+目标环境：[local / dev / prod]
+注册方式：[invite / public]
+支付：[关闭 / 月订阅 / 额度包]
+邮件：[关闭 / 转发 / 发信]
+完成可自动执行的步骤，明确告诉我还有哪些需要我操作。
+将密钥私密保存，不要让我把密钥贴进聊天。
+```
+
+托管环境配置需要 Agent 获得你自己账号的授权访问；登录、验证和经批准的购买可能需要你参与。文件是执行指引，不会自动授予账号权限。也可以按下面的手动步骤操作。
+
 ## 本地启动
 
 安装 Node.js 24+、npm、Docker 和 [Supabase CLI](https://supabase.com/docs/guides/local-development/cli/getting-started)。启动 Docker，将 CLI 加入 `PATH`，或通过 `SUPABASE_CLI` 指定可执行文件路径。本地 D1/R2 不需要 Cloudflare 账号。
