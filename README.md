@@ -1,20 +1,44 @@
 # App Starter
 
-An MIT-licensed starter for deploying a React application and API together on Cloudflare. Use your own accounts; no parent repository, Codex, MCP, or private infrastructure is required.
+[中文](docs/README.zh-CN.md) · English
 
-**Web foundation and optional billing:** Supabase Auth, administrator bootstrap/invitations, React workspace, owner-scoped D1 records, private R2 attachments, native deployment, and Stripe Checkout/Portal with a source-based entitlement ledger. The `agent` preset currently reserves a separate entry; chat, Workflows and usage settlement are Phase 4.
+App Starter is an MIT-licensed full-stack template for building applications on Cloudflare. It brings together a React workspace, authentication, administrator tools, application data, private attachments, optional payments and email, so you can start with your product's features instead of assembling that foundation for every new application.
 
-[中文说明](docs/README.zh-CN.md) · [Deployment](docs/deployment.md) · [Architecture](docs/architecture.md) · [Validation](docs/validation/phase-two-status.md)
+Use it for account-based tools, subscription products and internal workspaces. A sample records feature demonstrates the path from a validated form to an authorized API, persistent data and file attachments. Replace or extend that feature to build your own application. You own the source code, provider accounts and deployment resources; no shared App Starter service is required.
 
-[Contributing and branch policy](CONTRIBUTING.md): all changes enter `main` through a pull request; direct/force pushes and deleting `main` are blocked, including for maintainers.
+## Capabilities
 
-Payments default to disabled. Enable `billing` in `app.config.ts`, provide your own environment's Stripe secret key, and deploy: the setup command manages Products, versioned Prices, Portal, Webhook and secret readiness. [Billing setup, semantics and recovery](docs/billing.md) · [Phase 3 validation](docs/validation/phase-three-status.md). Real managed Sandbox Checkout/Portal passed against the local application. Direct Stripe-to-Cloudflare callbacks and hosted Supabase authentication also passed; complete hosted Checkout through the cloud application remains unverified. [Cloud evidence and limits](docs/validation/cloud-payment-2026-10-18.md).
+| Area | Included capabilities |
+|---|---|
+| Accounts and access | Supabase email/password login, invite-only or public signup, email confirmation, password recovery, and server-side membership/administrator checks |
+| Administration | One-time first-administrator setup, a user directory with roles/statuses, invitations and recovery links, invitation revocation, and administrative audit records |
+| Application UI | Responsive workspace, protected routes, Chinese/English translations, light/dark themes, reusable form/dialog components and notifications |
+| Application data | D1-backed records with create/edit/delete, title search, pagination and per-user ownership; shared Zod contracts for forms and APIs |
+| Private files | Record attachments in private R2 storage, authenticated downloads, configurable upload size limits and scheduled cleanup |
+| Payments | Optional Stripe monthly subscriptions and one-time credit packs, hosted Checkout, customer Portal, invoice access and period-end cancellation |
+| Entitlements | Separate free, subscription-period and purchased credit sources, feature permissions, duplicate-grant prevention, source-specific refund/dispute handling and administrator recovery |
+| Email | Optional Cloudflare address forwarding to an existing mailbox, Resend transactional sending and configuration guidance for Supabase custom SMTP |
+| Deployment | Frontend assets and API on one origin, native Vite/Wrangler tooling, separate local/dev/prod resources and forward-only D1 migrations |
 
-[Optional email](docs/email.md): Cloudflare aliases forward to your verified existing mailbox; Resend sends from your own verified domain and can provide Supabase custom SMTP. Configure once with `npm run email:setup -- dev`. No mail provider or domain is needed for default invite-mode startup.
+Invite mode is the default and does not require a mail provider. Public signup requires verified-email delivery through Supabase. Payments and email are optional and disabled unless configured.
+
+## Technology and runtime
+
+| Layer | Technology |
+|---|---|
+| Browser | React, TypeScript, Vite, React Router, TanStack Query |
+| Forms and UI | React Hook Form, Zod, Radix primitives, Tailwind CSS, Lucide, Sonner, i18next |
+| API | Hono on Cloudflare Workers |
+| Identity | Supabase Auth |
+| Application database | Cloudflare D1, Drizzle ORM and explicit SQL for coordinated writes |
+| File storage | Private Cloudflare R2 |
+| Optional integrations | Stripe, Cloudflare Email Routing and Resend |
+
+Vite builds static browser assets and a separate Worker. Supabase owns identity; application memberships, records, file metadata, orders and entitlement ledgers live in D1. R2 stores file contents. Feature code is organized into `client`, `shared` and `server` directories so browser bundles cannot import server implementations or secrets.
 
 ## Start locally
 
-Requirements: Node.js 24+, npm, Docker, and the [Supabase CLI](https://supabase.com/docs/guides/local-development/cli/getting-started). Local D1/R2 require no Cloudflare account. Put the CLI on PATH, or set `SUPABASE_CLI` to its executable path.
+Install Node.js 24+, npm, Docker and the [Supabase CLI](https://supabase.com/docs/guides/local-development/cli/getting-started). Start Docker and put the CLI on `PATH`, or set `SUPABASE_CLI` to its executable path. Local D1/R2 do not need a Cloudflare account.
 
 ```sh
 npm ci
@@ -22,22 +46,25 @@ npm run auth:local:start
 npm run dev
 ```
 
-In another terminal:
+Open `http://localhost:5173`. In another terminal, generate the first-administrator link:
 
 ```sh
 npm run bootstrap:token -- local
 ```
 
-Open the private link in `.local/bootstrap-local.txt` and create your administrator. The one-time token expires in 30 minutes and cannot initialize another administrator after completion.
+Open the private link saved in `.local/bootstrap-local.txt` to create the administrator. It expires after 30 minutes and is only for initializing the first administrator. You can then manage users and share invitation links from the application.
 
-Local Auth runs only the isolated `app-starter-e2e` project. The command preserves local data, saves credentials in ignored `.local/`, creates `.dev.vars` only if absent, and matches signup policy to `app.config.ts`. Changing that policy may restart this local stack. Mailpit: `http://localhost:55324`. Stop it with `npm run auth:local:stop`.
+Local Auth uses the isolated `app-starter-e2e` project. The startup command saves local credentials under ignored `.local/`, creates `.dev.vars` if absent and preserves an existing file. Mailpit is available at `http://localhost:55324`. Stop the stack with `npm run auth:local:stop`; local data is retained.
 
-For hosted local development, fill `.dev.vars` from `.dev.vars.example` using a dedicated development Supabase project. Integration tests still use isolated local Auth.
+You can also use a dedicated hosted development Supabase project by filling `.dev.vars` from `.dev.vars.example`. Integration tests still use isolated local Auth. See [development and authentication setup](docs/deployment.md).
 
-## Configuration
+## Configure your application
+
+Set public application choices in `app.config.ts`:
 
 ```ts
-// app.config.ts
+import type { AppConfig } from './src/shared/config';
+
 const config: AppConfig = {
   slug: 'my-app',
   title: 'My App',
@@ -45,39 +72,72 @@ const config: AppConfig = {
   authMode: 'invite',
   maxFileBytes: 10 * 1024 * 1024,
 };
+export default config;
 ```
 
-Infrastructure bindings and secrets belong to each environment. The browser receives only a whitelist from `/api/config`. Invite mode requires no SMTP: administrators generate one-time links and share them privately. Public mode additionally requires email verification, custom SMTP and the supplied confirmation/recovery templates configured **inside Supabase**.
+| Configuration | Where it belongs |
+|---|---|
+| Name, signup mode, upload limit, optional billing/email settings | `app.config.ts` |
+| Target account, public Auth settings and D1/R2 resource mappings | The selected environment in `wrangler.jsonc` |
+| Local runtime credentials | Ignored `.dev.vars` |
+| Dev/prod setup credentials | Ignored `.dev.vars.dev` / `.dev.vars.prod`, or CI environment variables |
+| Deployed server secrets | Cloudflare Worker secrets |
+
+The browser receives only the public configuration whitelist from `/api/config`. Keep secret keys out of `app.config.ts`, `VITE_*` variables and source control.
+
+Enable billing by adding a `billing` configuration with your currency, pricing and benefits, then providing that environment's Stripe key. Normal deployment synchronizes owned Products, immutable Prices, Portal and Webhook configuration, publishes server-only secrets and checks readiness before opening Checkout. See [payments and entitlements](docs/billing.md).
+
+For email, configure forwarding and/or sending, then run `npm run email:setup -- dev`. Forwarding requires a domain on Cloudflare and your existing verified destination mailbox; it does not host a mailbox. Resend sending requires a verified domain. Public signup's SMTP and email templates are configured inside Supabase. See [email setup](docs/email.md).
 
 ## Deploy
 
-1. `npx wrangler login`; fill the target account and public variables in `wrangler.jsonc`.
-2. `npm run deploy:dev -- --prepare` creates/reuses one D1 and one private R2 bucket, saving stable mappings. Commit those non-secret mappings in your derived app.
-3. `npx wrangler secret put SUPABASE_SECRET_KEY --config wrangler.jsonc --env dev`.
-4. `npm run deploy:dev`, then `npm run bootstrap:token -- dev`.
-
-Use `prod` for production. Dev/prod must use separate Supabase projects, D1 databases, R2 buckets and secrets. Builds finish before remote migrations; the emitted D1 binding must match the migration target. Redeploying preserves data/credentials. [Detailed setup](docs/deployment.md).
-
-The measured payment reconciliation path failed the Workers Free 10 ms CPU gate: all 40 samples exceeded it. Plan for Workers Paid when enabling payments; Paid performance remains untested. No script buys a plan. [Measurement scope](docs/validation/cloud-payment-2026-10-18.md) · [Cloudflare pricing](https://developers.cloudflare.com/workers/platform/pricing/).
-
-## Checks
-
-After starting local Auth:
+Create a dedicated hosted Supabase project for the target environment. Configure email/password, verified-email policy, signup mode, Site URL and the `/auth/confirm` redirect, then fill that environment's account and public settings in `wrangler.jsonc`.
 
 ```sh
-npm run type-check
-npm test
-npm run test:e2e
-npm run test:e2e:public
-npm run test:e2e:billing
+npx wrangler login
+npm run deploy:dev -- --prepare
+npx wrangler secret put SUPABASE_SECRET_KEY --config wrangler.jsonc --env dev
+npm run deploy:dev
+npm run bootstrap:token -- dev
 ```
 
-Tests use real local Supabase Auth/Postgres/Mailpit, Worker APIs, D1 and R2. Browser tests do not intercept backend routes. E2E resets only its isolated D1/R2 persistence. Public E2E temporarily changes the local app/Auth signup mode and restores invite mode; run it separately from dev servers and other tests.
+Preparation creates or reuses one D1 database and one private R2 bucket, then saves their mappings. Commit those non-secret mappings in your derived application. Deployment checks configuration, builds the application, applies forward-only migrations and checks health.
 
-`npm run build` emits `dist/client` and `dist/worker`. `test:build` inspects the actual import graph and bindings. Queries have a 60-second freshness window and at most one retry; writes do not retry automatically.
+Use `prod` for production. Dev/prod must use separate Supabase projects, D1 databases, R2 buckets and secrets. Provider quotas and charges apply independently; assess Worker CPU limits and plan for Workers Paid when enabling billing. Deployment commands do not purchase plans. See [deployment instructions](docs/deployment.md) and [Cloudflare pricing](https://developers.cloudflare.com/workers/platform/pricing/).
 
-## Historical probes
+## Development and checks
 
-`probes/` preserves Phase 1 experiments; product `src/` does not import them. Better Auth remains a development dependency solely for archived tests. `npm run test:probes` runs them. `npm run verify:gate` still fails for the historical Better Auth/Workers Free CPU gate; it is not Phase 2 acceptance. [Historical results](docs/validation/phase-one-summary.md).
+Start local Auth before running integration or browser tests:
+
+| Command | Purpose |
+|---|---|
+| `npm run dev` | Local frontend and Worker development |
+| `npm run build` | Emit `dist/client` and `dist/worker` |
+| `npm run type-check` | TypeScript checks |
+| `npm test` | Build/setup, application integration and probe regression suites |
+| `npm run test:e2e` | Workspace, authentication, records and attachments browser tests |
+| `npm run test:e2e:public` | Public signup and recovery browser tests |
+| `npm run test:e2e:billing` | Billing browser tests with a deterministic external payment substitute |
+
+Application tests exercise real local Auth, Worker APIs and persistence. Run the browser suites sequentially: public/billing runners temporarily change their own configuration and restore it afterward. Real-provider acceptance uses separate opt-in commands documented in [billing](docs/billing.md).
+
+## Project layout
+
+```text
+app.config.ts        Application choices
+src/client/          React shell, routing, UI and client utilities
+src/features/        Business features split into client/shared/server
+src/server/          API, Auth, administration, database, files and email
+src/shared/          Runtime-neutral configuration and contracts
+scripts/             Development, deployment and provider setup tools
+migrations/          Forward-only D1 migrations
+locales/             English and Chinese translations
+supabase/            Local Auth configuration and email templates
+tests/               Build, integration, browser and provider tests
+docs/                Deployment and integration guides
+probes/              Isolated experiments and regression fixtures
+```
+
+For architecture, code boundaries and change-specific verification, see [AGENTS.md](AGENTS.md). Contributions use topic branches and pull requests; direct pushes to `main` are prohibited. Forks and derived repositories must configure their own GitHub protection. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 [MIT license](LICENSE) · [Dependency notices](THIRD_PARTY_NOTICES.md)
