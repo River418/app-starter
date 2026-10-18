@@ -2,9 +2,11 @@
 
 [中文](docs/README.zh-CN.md) · English
 
-App Starter is an MIT-licensed full-stack template for building applications on Cloudflare. It brings together a React workspace, authentication, administrator tools, application data, private attachments, optional payments and email, so you can start with your product's features instead of assembling that foundation for every new application.
+App Starter is an MIT-licensed starter that helps developers build application prototypes quickly. It brings together a React workspace, authentication, administrator tools, application data, private attachments, optional payments and email, so you can focus on testing product ideas and user flows instead of repeatedly assembling the same foundation.
 
-Use it for account-based tools, subscription products and internal workspaces. A sample records feature demonstrates the path from a validated form to an authorized API, persistent data and file attachments. Replace or extend that feature to build your own application. You own the source code, provider accounts and deployment resources; no shared App Starter service is required.
+The application combines Cloudflare and Supabase: Cloudflare serves the frontend and runs the Worker API, while Supabase Auth and its PostgreSQL database manage user accounts and authentication. Application data uses Cloudflare D1, and file contents use R2. Optional payments and outbound email integrate with Stripe and Resend.
+
+Prototype account-based tools, subscription products and internal workspaces. A sample records feature demonstrates the path from a validated form to an authorized API, persistent data and file attachments. Replace or extend that feature to build your own application. You own the source code, provider accounts and deployment resources; no shared App Starter service is required.
 
 ## Capabilities
 
@@ -29,12 +31,12 @@ Invite mode is the default and does not require a mail provider. Public signup r
 | Browser | React, TypeScript, Vite, React Router, TanStack Query |
 | Forms and UI | React Hook Form, Zod, Radix primitives, Tailwind CSS, Lucide, Sonner, i18next |
 | API | Hono on Cloudflare Workers |
-| Identity | Supabase Auth |
+| Accounts and authentication database | Supabase Auth and its PostgreSQL database |
 | Application database | Cloudflare D1, Drizzle ORM and explicit SQL for coordinated writes |
 | File storage | Private Cloudflare R2 |
 | Optional integrations | Stripe, Cloudflare Email Routing and Resend |
 
-Vite builds static browser assets and a separate Worker. Supabase owns identity; application memberships, records, file metadata, orders and entitlement ledgers live in D1. R2 stores file contents. Feature code is organized into `client`, `shared` and `server` directories so browser bundles cannot import server implementations or secrets.
+Vite builds browser assets and a separate Worker for Cloudflare. Supabase stores user accounts and authentication data. D1 stores application memberships and roles, records, file metadata, orders and entitlement ledgers; R2 stores file contents. Feature code is organized into `client`, `shared` and `server` directories so browser bundles cannot import server implementations or secrets.
 
 ## Start locally
 

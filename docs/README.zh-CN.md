@@ -2,9 +2,11 @@
 
 中文 · [English](../README.md)
 
-App Starter 是一个采用 MIT 许可证、部署在 Cloudflare 上的全栈应用模板。它将 React 工作台、认证、管理员工具、业务数据、私有附件、可选支付与邮件能力整合起来，让你从产品功能开始开发，减少每次新建应用时重复搭建基础系统的工作。
+App Starter 是一个采用 MIT 许可证、帮助开发者快速建立应用原型的开发模板。它将 React 工作台、认证、管理员工具、业务数据、私有附件、可选支付与邮件能力整合起来，让你专注于验证产品想法和用户流程，减少重复搭建基础系统的工作。
 
-它适合需要用户账号的工具、订阅产品和内部工作台。内置的记录管理示例串起了表单校验、接口鉴权、数据持久化和文件附件，你可以替换或扩展这个模块来构建自己的应用。代码、服务账号和部署资源都由你管理，无需依赖共享的 App Starter 服务。
+应用组合使用 Cloudflare 和 Supabase：Cloudflare 托管前端并运行 Worker API，Supabase Auth 及其 PostgreSQL 数据库负责用户账号与认证。业务数据使用 Cloudflare D1，文件内容使用 R2；可选支付和对外发信分别集成 Stripe 与 Resend。
+
+你可以用它验证需要用户账号的工具、订阅产品和内部工作台。内置的记录管理示例串起了表单校验、接口鉴权、数据持久化和文件附件，你可以替换或扩展这个模块来构建自己的应用。代码、服务账号和部署资源都由你管理，无需依赖共享的 App Starter 服务。
 
 ## 基本能力
 
@@ -29,12 +31,12 @@ App Starter 是一个采用 MIT 许可证、部署在 Cloudflare 上的全栈应
 | 浏览器 | React、TypeScript、Vite、React Router、TanStack Query |
 | 表单与 UI | React Hook Form、Zod、Radix 基础组件、Tailwind CSS、Lucide、Sonner、i18next |
 | API | 运行在 Cloudflare Workers 上的 Hono |
-| 身份认证 | Supabase Auth |
+| 账号与认证数据库 | Supabase Auth 及其 PostgreSQL 数据库 |
 | 业务数据库 | Cloudflare D1、Drizzle ORM，以及用于协调写入的显式 SQL |
 | 文件存储 | 私有 Cloudflare R2 |
 | 可选集成 | Stripe、Cloudflare Email Routing、Resend |
 
-Vite 分别构建浏览器静态资源和 Worker。Supabase 负责身份认证；应用成员、记录、文件元数据、订单和权益账本保存在 D1，文件内容保存在 R2。业务模块按 `client`、`shared`、`server` 拆分，防止服务端实现或密钥进入浏览器包。
+Vite 为 Cloudflare 分别构建浏览器资源和 Worker。Supabase 保存用户账号与认证数据；D1 保存应用成员与角色、记录、文件元数据、订单和权益账本，R2 保存文件内容。业务模块按 `client`、`shared`、`server` 拆分，防止服务端实现或密钥进入浏览器包。
 
 ## 本地启动
 
