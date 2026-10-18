@@ -90,12 +90,16 @@ try {
 if (previous?.preset === "agent" && config.preset === "web")
   throw new Error("Agent to web deployment requires the Phase 4 drain gate");
 const cliEnv = {
-  CLOUDFLARE_ENV: environment,
+  // Vite emits a flattened target config. Selecting the env again in native
+  // Wrangler would append a second suffix and address a different Worker.
+  CLOUDFLARE_ENV: undefined,
   CLOUDFLARE_ACCOUNT_ID: target.account_id,
 };
 await runTool("tsc", ["-p", "tsconfig.client.json"]);
 await runTool("tsc", ["-p", "tsconfig.server.json"]);
-await runTool("vite", ["build"], { env: cliEnv });
+await runTool("vite", ["build"], {
+  env: { ...cliEnv, CLOUDFLARE_ENV: environment },
+});
 const built = JSON.parse(await readFile("dist/worker/wrangler.json", "utf8"));
 if (built.d1_databases[0]?.database_id !== target.d1_databases[0].database_id)
   throw new Error("Build/migration D1 mismatch");

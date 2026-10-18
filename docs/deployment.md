@@ -45,7 +45,7 @@ npm run deploy:dev
 npm run bootstrap:token -- dev
 ```
 
-Native Wrangler may create a draft Worker when setting the first secret. The script selects `CLOUDFLARE_ENV` before building, then migrates/deploys with the emitted `dist/worker/wrangler.json`. Never add a different `--env` to that built config. Secret listing verifies existence; real login verifies the credential itself.
+Native Wrangler may create a draft Worker when setting the first secret. The script selects `CLOUDFLARE_ENV` for Vite building, then clears it before native Wrangler uses the flattened `dist/worker/wrangler.json`. Do not select an environment again through `--env` or `CLOUDFLARE_ENV` when using that built config: it can address a different Worker with a repeated suffix. Secret listing verifies existence; real login verifies the credential itself.
 
 Forward-only migrations run only after successful types/build and a matching built D1 ID. Startup checks schema version without migrating. Do not edit applied migrations in a derived app. There is no destructive schema rollback. Workers Paid is a separate account subscription; these scripts never purchase it. Supabase Auth does not guarantee the remaining Worker CPU fits Free.
 

@@ -1,0 +1,618 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-18",
+  "timezone": "Asia/Shanghai",
+  "exportedAt": "2026-10-17T17:28:32.043Z",
+  "scope": "Independent development resources; managed Stripe Sandbox test mode; no production or live funds.",
+  "sourceCommit": "c70206e6f14a91f6888c1cc3a57b91e153a96f18",
+  "deployment": {
+    "version": "5c75f588-4f32-4351-b9e5-5ceff364751a",
+    "percentage": 100,
+    "accountPlan": "Workers Free",
+    "planEvidence": "Dashboard Current plan observation; not inferred from usage model",
+    "schema": 5,
+    "health": {
+      "ok": true,
+      "environment": "dev",
+      "schemaVersion": 5
+    },
+    "bundleRawKiB": 1731.8,
+    "bundleGzipKiB": 337.48,
+    "nativeStartupMs": 15,
+    "workerSha256": "7ba75d735cca7fd7b2e09fdf180e790820a0ba70d61a38868f7a6f85ff2e3897",
+    "lockfileSha256": "643781066ad381c6d94502bc3205e81054376c331a7db7debeee04e53257d2e6",
+    "validationCron": "* * * * *",
+    "finalCron": [
+      "*/10 * * * *"
+    ]
+  },
+  "configuration": {
+    "preset": "web",
+    "authMode": "invite",
+    "identity": "dedicated hosted Supabase Auth; Data API disabled",
+    "billingEnabled": true,
+    "currency": "usd",
+    "monthly": {
+      "amountMinor": 990,
+      "credits": 100
+    },
+    "creditPack": {
+      "amountMinor": 490,
+      "credits": 50
+    },
+    "repositoryDefaultBillingEnabled": false
+  },
+  "checks": {
+    "typeCheck": "passed",
+    "fullTests": {
+      "passed": 113,
+      "buildSetup": 16,
+      "integration": 36,
+      "historical": 61
+    },
+    "productionBuild": "passed",
+    "normalDeployment": "passed",
+    "hostedBootstrapLoginSessionAdmin": "passed",
+    "authenticatedCheckoutCreationAndReuseBothPlans": "passed",
+    "authenticatedOwnedPortalCreation": "passed",
+    "unpaidOrdersRemainUnconfirmedWithZeroCredits": "passed",
+    "naturalStripeToCloudflareInvoiceDelivery": "passed-operator-fixture",
+    "realProviderDirectResendDedupe": "passed-operator-fixture",
+    "actualFullTestRefundAndCancellation": "passed-operator-fixture",
+    "fullAuthenticatedCloudHostedPurchase": "unverified-browser-dialog-blocked",
+    "freeCpuBudget": "failed",
+    "paidPlanRuntime": "unverified",
+    "hostedSmtp": "unverified",
+    "productionLivePayments": "not-run",
+    "phaseFourAgent": "not-implemented"
+  },
+  "scopeLimitations": [
+    "Paid subscription used disabled D1 operator membership/order fixtures and direct Stripe API subscription creation, without a Supabase identity.",
+    "The separate real hosted administrator created cloud Checkout/Portal sessions through application APIs but did not complete hosted UI payment.",
+    "CPU notifications and Cron inbox/file seeds were synthetic workloads; canonical Stripe reads and remote D1/R2 operations were real.",
+    "No cold-start repetition, sustained load or concurrency acceptance established."
+  ],
+  "payments": {
+    "paidOperator": {
+      "grant": {
+        "action": "grant",
+        "count": 1,
+        "quantity": 100
+      },
+      "refund": {
+        "action": "refund",
+        "count": 1,
+        "quantity": -100
+      },
+      "sources": [
+        {
+          "kind": "subscription",
+          "credits": 100,
+          "remaining": 0,
+          "state": "reversed",
+          "review_reason": null
+        }
+      ]
+    },
+    "unpaidAuthenticatedUser": {
+      "checkoutSessionCount": 2,
+      "operationReuse": true,
+      "portalCreated": true,
+      "availableCredits": 0,
+      "expiredSessions": 2
+    },
+    "finalInbox": [
+      {
+        "state": "done",
+        "count": 61
+      }
+    ],
+    "finalSubscriptions": [
+      {
+        "status": "canceled",
+        "count": 1
+      }
+    ],
+    "inboxCountLimitation": "Rows include natural provider deliveries, synthetic CPU events and internal recovery; do not label the count real Stripe deliveries."
+  },
+  "cpu": {
+    "version": "5c75f588-4f32-4351-b9e5-5ceff364751a",
+    "method": {
+      "request": "Exact request.sample equals trace.query, exact deployed version, exact path; only one matching invocation qualifies.",
+      "percentiles": "Nearest-rank over observed samples only; missing values are never imputed as zero.",
+      "versionLimitation": "Request journals do not carry a deployment version. Each qualified CPU row is pinned to the single observed matching trace version shown above."
+    },
+    "http": {
+      "nRequests": 140,
+      "nCpu": 96,
+      "missing": 44,
+      "httpStatusCounts": {
+        "200": 140
+      },
+      "cpuAbove10Count": 41
+    },
+    "groups": [
+      {
+        "group": "canonical-typical",
+        "path": "/api/billing/webhook",
+        "nRequests": 20,
+        "nCpu": 20,
+        "missing": 0,
+        "nWall": 20,
+        "cpuMs": {
+          "p50Ms": 20,
+          "p95Ms": 26,
+          "maxMs": 58
+        },
+        "wallMs": {
+          "p50Ms": 1186,
+          "p95Ms": 1318,
+          "maxMs": 1378
+        },
+        "cpuAbove10Count": 20,
+        "httpStatusCounts": {
+          "200": 20
+        },
+        "traceOutcomeCounts": {
+          "ok": 20
+        },
+        "duplicateMatches": 0,
+        "otherVersionMatches": 0,
+        "statusMismatches": 0,
+        "inputBytes": {
+          "minimum": 4128,
+          "maximum": 4128
+        },
+        "free10msAssessment": "fail"
+      },
+      {
+        "group": "canonical-max",
+        "path": "/api/billing/webhook",
+        "nRequests": 20,
+        "nCpu": 20,
+        "missing": 0,
+        "nWall": 20,
+        "cpuMs": {
+          "p50Ms": 21,
+          "p95Ms": 26,
+          "maxMs": 28
+        },
+        "wallMs": {
+          "p50Ms": 1183,
+          "p95Ms": 1346,
+          "maxMs": 1595
+        },
+        "cpuAbove10Count": 20,
+        "httpStatusCounts": {
+          "200": 20
+        },
+        "traceOutcomeCounts": {
+          "ok": 20
+        },
+        "duplicateMatches": 0,
+        "otherVersionMatches": 0,
+        "statusMismatches": 0,
+        "inputBytes": {
+          "minimum": 262144,
+          "maximum": 262144
+        },
+        "free10msAssessment": "fail"
+      },
+      {
+        "group": "signature-typical",
+        "path": "/api/billing/webhook",
+        "nRequests": 20,
+        "nCpu": 9,
+        "missing": 11,
+        "nWall": 9,
+        "cpuMs": {
+          "p50Ms": 2,
+          "p95Ms": 2,
+          "maxMs": 2
+        },
+        "wallMs": {
+          "p50Ms": 15,
+          "p95Ms": 20,
+          "maxMs": 20
+        },
+        "cpuAbove10Count": 0,
+        "httpStatusCounts": {
+          "200": 20
+        },
+        "traceOutcomeCounts": {
+          "ok": 9
+        },
+        "duplicateMatches": 0,
+        "otherVersionMatches": 0,
+        "statusMismatches": 0,
+        "inputBytes": {
+          "minimum": 4096,
+          "maximum": 4096
+        },
+        "free10msAssessment": "incomplete"
+      },
+      {
+        "group": "signature-max",
+        "path": "/api/billing/webhook",
+        "nRequests": 20,
+        "nCpu": 9,
+        "missing": 11,
+        "nWall": 9,
+        "cpuMs": {
+          "p50Ms": 3,
+          "p95Ms": 5,
+          "maxMs": 5
+        },
+        "wallMs": {
+          "p50Ms": 21,
+          "p95Ms": 23,
+          "maxMs": 23
+        },
+        "cpuAbove10Count": 0,
+        "httpStatusCounts": {
+          "200": 20
+        },
+        "traceOutcomeCounts": {
+          "ok": 9
+        },
+        "duplicateMatches": 0,
+        "otherVersionMatches": 0,
+        "statusMismatches": 0,
+        "inputBytes": {
+          "minimum": 262144,
+          "maximum": 262144
+        },
+        "free10msAssessment": "incomplete"
+      },
+      {
+        "group": "session",
+        "path": "/api/session",
+        "nRequests": 20,
+        "nCpu": 20,
+        "missing": 0,
+        "nWall": 20,
+        "cpuMs": {
+          "p50Ms": 2,
+          "p95Ms": 4,
+          "maxMs": 14
+        },
+        "wallMs": {
+          "p50Ms": 274,
+          "p95Ms": 288,
+          "maxMs": 364
+        },
+        "cpuAbove10Count": 1,
+        "httpStatusCounts": {
+          "200": 20
+        },
+        "traceOutcomeCounts": {
+          "ok": 20
+        },
+        "duplicateMatches": 0,
+        "otherVersionMatches": 0,
+        "statusMismatches": 0,
+        "free10msAssessment": "fail"
+      },
+      {
+        "group": "billing",
+        "path": "/api/billing",
+        "nRequests": 20,
+        "nCpu": 12,
+        "missing": 8,
+        "nWall": 12,
+        "cpuMs": {
+          "p50Ms": 4,
+          "p95Ms": 4,
+          "maxMs": 4
+        },
+        "wallMs": {
+          "p50Ms": 325,
+          "p95Ms": 340,
+          "maxMs": 340
+        },
+        "cpuAbove10Count": 0,
+        "httpStatusCounts": {
+          "200": 20
+        },
+        "traceOutcomeCounts": {
+          "ok": 12
+        },
+        "duplicateMatches": 0,
+        "otherVersionMatches": 0,
+        "statusMismatches": 0,
+        "free10msAssessment": "incomplete"
+      },
+      {
+        "group": "catalog",
+        "path": "/api/billing/catalog",
+        "nRequests": 20,
+        "nCpu": 6,
+        "missing": 14,
+        "nWall": 6,
+        "cpuMs": {
+          "p50Ms": 0,
+          "p95Ms": 2,
+          "maxMs": 2
+        },
+        "wallMs": {
+          "p50Ms": 11,
+          "p95Ms": 14,
+          "maxMs": 14
+        },
+        "cpuAbove10Count": 0,
+        "httpStatusCounts": {
+          "200": 20
+        },
+        "traceOutcomeCounts": {
+          "ok": 6
+        },
+        "duplicateMatches": 0,
+        "otherVersionMatches": 0,
+        "statusMismatches": 0,
+        "free10msAssessment": "incomplete"
+      }
+    ],
+    "scheduledLoaded": {
+      "seededAt": 1792257572525,
+      "statusObservedAt": 1792257712609,
+      "nCronInvocations": 2,
+      "nCpu": 2,
+      "missingCpu": 0,
+      "cpuMs": {
+        "p50Ms": 33,
+        "p95Ms": 99,
+        "maxMs": 99
+      },
+      "wallMs": {
+        "p50Ms": 8486,
+        "p95Ms": 26367,
+        "maxMs": 26367
+      },
+      "cpuAbove10Count": 2,
+      "invocations": [
+        {
+          "at": 1792257621802,
+          "cpuTimeMs": 99,
+          "wallTimeMs": 26367,
+          "outcome": "ok"
+        },
+        {
+          "at": 1792257681585,
+          "cpuTimeMs": 33,
+          "wallTimeMs": 8486,
+          "outcome": "ok"
+        }
+      ],
+      "finalBillingStates": [
+        {
+          "state": "done",
+          "count": 10
+        }
+      ],
+      "remainingFiles": 0,
+      "grantCount": 1,
+      "loadLimitation": "The ten-event run drained across these observed invocations. Per-invocation event/file work counts are unavailable; these are not repeated samples of an identical full load. remainingFiles=0 is final outstanding work, not a claim that zero files were processed."
+    },
+    "assessment": {
+      "free10msCpuBudget": "fail",
+      "completePerRequestCpuCoverage": false,
+      "accountPlanVerifiedByThisAudit": false,
+      "coldStartCoverage": "not established",
+      "conclusions": [
+        "Canonical typical and maximum groups each have 20 of 20 exact matched CPU samples; all 40 exceed 10 ms.",
+        "The session group has one observed request above 10 ms.",
+        "Both observed post-seed Scheduled invocations exceed 10 ms.",
+        "All 140 HTTP requests returned 200; successful HTTP status and outcome=ok do not establish compliance with a 10 ms CPU budget.",
+        "Signature, billing and catalog CPU samples remain incomplete. Their percentiles describe captured invocations only; no complete passing CPU gate is established.",
+        "This report audits CPU observations, not independent account-plan entitlement or provider delivery."
+      ]
+    },
+    "telemetryDiscoveryStatus": 403,
+    "finalSanitizedTraceSha256": "d03ae6f70bf6ed1b37843e78f2eebdb81b775fb05d7f74643ec0054f27546ddd",
+    "sampleLimitation": "Missing CPU values remain null. Exact unique sample/path/version matching was performed before removing request identifiers from this public export."
+  },
+  "boundaries": [
+    {
+      "name": "exact-limit",
+      "bytes": 262144,
+      "status": 200,
+      "expected": 200,
+      "passed": true
+    },
+    {
+      "name": "over-limit",
+      "bytes": 262145,
+      "status": 413,
+      "expected": 413,
+      "passed": true
+    },
+    {
+      "name": "missing-signature",
+      "bytes": 512,
+      "status": 400,
+      "expected": 400,
+      "passed": true
+    },
+    {
+      "name": "invalid-signature",
+      "bytes": 512,
+      "status": 400,
+      "expected": 400,
+      "passed": true
+    },
+    {
+      "name": "wrong-mode",
+      "bytes": 512,
+      "status": 400,
+      "expected": 400,
+      "passed": true
+    },
+    {
+      "name": "unauthenticated-billing",
+      "status": 401,
+      "expected": 401,
+      "passed": true
+    },
+    {
+      "name": "cross-origin-portal",
+      "status": 403,
+      "expected": 403,
+      "passed": true
+    }
+  ],
+  "cleanup": {
+    "cronRestoredAndReadBack": true,
+    "localAuthStoppedWithBackup": true,
+    "tailProcessStoppedAndChecked": true,
+    "cloudResourcesRetainedForBrowserAcceptance": true,
+    "testSubscriptionsCanceled": true,
+    "unusedCheckoutSessionsExpired": true
+  },
+  "references": [
+    "https://developers.cloudflare.com/workers/platform/limits/",
+    "https://developers.cloudflare.com/workers/platform/pricing/",
+    "https://docs.stripe.com/webhooks"
+  ],
+  "httpSamples": [
+    {"ordinal":1,"group":"canonical-typical","path":"/api/billing/webhook","bytes":4128,"status":200,"cpuMs":58,"wallMs":1378,"outcome":"ok"},
+    {"ordinal":2,"group":"canonical-typical","path":"/api/billing/webhook","bytes":4128,"status":200,"cpuMs":26,"wallMs":1243,"outcome":"ok"},
+    {"ordinal":3,"group":"canonical-typical","path":"/api/billing/webhook","bytes":4128,"status":200,"cpuMs":24,"wallMs":1218,"outcome":"ok"},
+    {"ordinal":4,"group":"canonical-typical","path":"/api/billing/webhook","bytes":4128,"status":200,"cpuMs":20,"wallMs":1149,"outcome":"ok"},
+    {"ordinal":5,"group":"canonical-typical","path":"/api/billing/webhook","bytes":4128,"status":200,"cpuMs":21,"wallMs":1224,"outcome":"ok"},
+    {"ordinal":6,"group":"canonical-typical","path":"/api/billing/webhook","bytes":4128,"status":200,"cpuMs":23,"wallMs":1318,"outcome":"ok"},
+    {"ordinal":7,"group":"canonical-typical","path":"/api/billing/webhook","bytes":4128,"status":200,"cpuMs":18,"wallMs":1166,"outcome":"ok"},
+    {"ordinal":8,"group":"canonical-typical","path":"/api/billing/webhook","bytes":4128,"status":200,"cpuMs":20,"wallMs":1170,"outcome":"ok"},
+    {"ordinal":9,"group":"canonical-typical","path":"/api/billing/webhook","bytes":4128,"status":200,"cpuMs":20,"wallMs":1186,"outcome":"ok"},
+    {"ordinal":10,"group":"canonical-typical","path":"/api/billing/webhook","bytes":4128,"status":200,"cpuMs":21,"wallMs":1167,"outcome":"ok"},
+    {"ordinal":11,"group":"canonical-typical","path":"/api/billing/webhook","bytes":4128,"status":200,"cpuMs":19,"wallMs":1191,"outcome":"ok"},
+    {"ordinal":12,"group":"canonical-typical","path":"/api/billing/webhook","bytes":4128,"status":200,"cpuMs":18,"wallMs":1099,"outcome":"ok"},
+    {"ordinal":13,"group":"canonical-typical","path":"/api/billing/webhook","bytes":4128,"status":200,"cpuMs":22,"wallMs":1222,"outcome":"ok"},
+    {"ordinal":14,"group":"canonical-typical","path":"/api/billing/webhook","bytes":4128,"status":200,"cpuMs":18,"wallMs":1266,"outcome":"ok"},
+    {"ordinal":15,"group":"canonical-typical","path":"/api/billing/webhook","bytes":4128,"status":200,"cpuMs":22,"wallMs":1111,"outcome":"ok"},
+    {"ordinal":16,"group":"canonical-typical","path":"/api/billing/webhook","bytes":4128,"status":200,"cpuMs":18,"wallMs":1194,"outcome":"ok"},
+    {"ordinal":17,"group":"canonical-typical","path":"/api/billing/webhook","bytes":4128,"status":200,"cpuMs":17,"wallMs":1208,"outcome":"ok"},
+    {"ordinal":18,"group":"canonical-typical","path":"/api/billing/webhook","bytes":4128,"status":200,"cpuMs":22,"wallMs":1154,"outcome":"ok"},
+    {"ordinal":19,"group":"canonical-typical","path":"/api/billing/webhook","bytes":4128,"status":200,"cpuMs":22,"wallMs":1136,"outcome":"ok"},
+    {"ordinal":20,"group":"canonical-typical","path":"/api/billing/webhook","bytes":4128,"status":200,"cpuMs":18,"wallMs":1162,"outcome":"ok"},
+    {"ordinal":21,"group":"canonical-max","path":"/api/billing/webhook","bytes":262144,"status":200,"cpuMs":26,"wallMs":1283,"outcome":"ok"},
+    {"ordinal":22,"group":"canonical-max","path":"/api/billing/webhook","bytes":262144,"status":200,"cpuMs":28,"wallMs":1222,"outcome":"ok"},
+    {"ordinal":23,"group":"canonical-max","path":"/api/billing/webhook","bytes":262144,"status":200,"cpuMs":23,"wallMs":1169,"outcome":"ok"},
+    {"ordinal":24,"group":"canonical-max","path":"/api/billing/webhook","bytes":262144,"status":200,"cpuMs":21,"wallMs":1183,"outcome":"ok"},
+    {"ordinal":25,"group":"canonical-max","path":"/api/billing/webhook","bytes":262144,"status":200,"cpuMs":21,"wallMs":1186,"outcome":"ok"},
+    {"ordinal":26,"group":"canonical-max","path":"/api/billing/webhook","bytes":262144,"status":200,"cpuMs":21,"wallMs":1301,"outcome":"ok"},
+    {"ordinal":27,"group":"canonical-max","path":"/api/billing/webhook","bytes":262144,"status":200,"cpuMs":20,"wallMs":1219,"outcome":"ok"},
+    {"ordinal":28,"group":"canonical-max","path":"/api/billing/webhook","bytes":262144,"status":200,"cpuMs":21,"wallMs":1226,"outcome":"ok"},
+    {"ordinal":29,"group":"canonical-max","path":"/api/billing/webhook","bytes":262144,"status":200,"cpuMs":19,"wallMs":1130,"outcome":"ok"},
+    {"ordinal":30,"group":"canonical-max","path":"/api/billing/webhook","bytes":262144,"status":200,"cpuMs":23,"wallMs":1148,"outcome":"ok"},
+    {"ordinal":31,"group":"canonical-max","path":"/api/billing/webhook","bytes":262144,"status":200,"cpuMs":22,"wallMs":1595,"outcome":"ok"},
+    {"ordinal":32,"group":"canonical-max","path":"/api/billing/webhook","bytes":262144,"status":200,"cpuMs":20,"wallMs":1169,"outcome":"ok"},
+    {"ordinal":33,"group":"canonical-max","path":"/api/billing/webhook","bytes":262144,"status":200,"cpuMs":17,"wallMs":1127,"outcome":"ok"},
+    {"ordinal":34,"group":"canonical-max","path":"/api/billing/webhook","bytes":262144,"status":200,"cpuMs":20,"wallMs":1178,"outcome":"ok"},
+    {"ordinal":35,"group":"canonical-max","path":"/api/billing/webhook","bytes":262144,"status":200,"cpuMs":24,"wallMs":1225,"outcome":"ok"},
+    {"ordinal":36,"group":"canonical-max","path":"/api/billing/webhook","bytes":262144,"status":200,"cpuMs":21,"wallMs":1209,"outcome":"ok"},
+    {"ordinal":37,"group":"canonical-max","path":"/api/billing/webhook","bytes":262144,"status":200,"cpuMs":19,"wallMs":1346,"outcome":"ok"},
+    {"ordinal":38,"group":"canonical-max","path":"/api/billing/webhook","bytes":262144,"status":200,"cpuMs":19,"wallMs":1133,"outcome":"ok"},
+    {"ordinal":39,"group":"canonical-max","path":"/api/billing/webhook","bytes":262144,"status":200,"cpuMs":21,"wallMs":1106,"outcome":"ok"},
+    {"ordinal":40,"group":"canonical-max","path":"/api/billing/webhook","bytes":262144,"status":200,"cpuMs":20,"wallMs":1157,"outcome":"ok"},
+    {"ordinal":41,"group":"signature-typical","path":"/api/billing/webhook","bytes":4096,"status":200,"cpuMs":1,"wallMs":14,"outcome":"ok"},
+    {"ordinal":42,"group":"signature-typical","path":"/api/billing/webhook","bytes":4096,"status":200,"cpuMs":2,"wallMs":15,"outcome":"ok"},
+    {"ordinal":43,"group":"signature-typical","path":"/api/billing/webhook","bytes":4096,"status":200,"cpuMs":1,"wallMs":16,"outcome":"ok"},
+    {"ordinal":44,"group":"signature-typical","path":"/api/billing/webhook","bytes":4096,"status":200,"cpuMs":1,"wallMs":13,"outcome":"ok"},
+    {"ordinal":45,"group":"signature-typical","path":"/api/billing/webhook","bytes":4096,"status":200,"cpuMs":2,"wallMs":20,"outcome":"ok"},
+    {"ordinal":46,"group":"signature-typical","path":"/api/billing/webhook","bytes":4096,"status":200,"cpuMs":1,"wallMs":14,"outcome":"ok"},
+    {"ordinal":47,"group":"signature-typical","path":"/api/billing/webhook","bytes":4096,"status":200,"cpuMs":2,"wallMs":15,"outcome":"ok"},
+    {"ordinal":48,"group":"signature-typical","path":"/api/billing/webhook","bytes":4096,"status":200,"cpuMs":null,"wallMs":null,"outcome":null},
+    {"ordinal":49,"group":"signature-typical","path":"/api/billing/webhook","bytes":4096,"status":200,"cpuMs":null,"wallMs":null,"outcome":null},
+    {"ordinal":50,"group":"signature-typical","path":"/api/billing/webhook","bytes":4096,"status":200,"cpuMs":null,"wallMs":null,"outcome":null},
+    {"ordinal":51,"group":"signature-typical","path":"/api/billing/webhook","bytes":4096,"status":200,"cpuMs":null,"wallMs":null,"outcome":null},
+    {"ordinal":52,"group":"signature-typical","path":"/api/billing/webhook","bytes":4096,"status":200,"cpuMs":null,"wallMs":null,"outcome":null},
+    {"ordinal":53,"group":"signature-typical","path":"/api/billing/webhook","bytes":4096,"status":200,"cpuMs":null,"wallMs":null,"outcome":null},
+    {"ordinal":54,"group":"signature-typical","path":"/api/billing/webhook","bytes":4096,"status":200,"cpuMs":2,"wallMs":18,"outcome":"ok"},
+    {"ordinal":55,"group":"signature-typical","path":"/api/billing/webhook","bytes":4096,"status":200,"cpuMs":null,"wallMs":null,"outcome":null},
+    {"ordinal":56,"group":"signature-typical","path":"/api/billing/webhook","bytes":4096,"status":200,"cpuMs":null,"wallMs":null,"outcome":null},
+    {"ordinal":57,"group":"signature-typical","path":"/api/billing/webhook","bytes":4096,"status":200,"cpuMs":null,"wallMs":null,"outcome":null},
+    {"ordinal":58,"group":"signature-typical","path":"/api/billing/webhook","bytes":4096,"status":200,"cpuMs":2,"wallMs":17,"outcome":"ok"},
+    {"ordinal":59,"group":"signature-typical","path":"/api/billing/webhook","bytes":4096,"status":200,"cpuMs":null,"wallMs":null,"outcome":null},
+    {"ordinal":60,"group":"signature-typical","path":"/api/billing/webhook","bytes":4096,"status":200,"cpuMs":null,"wallMs":null,"outcome":null},
+    {"ordinal":61,"group":"signature-max","path":"/api/billing/webhook","bytes":262144,"status":200,"cpuMs":2,"wallMs":21,"outcome":"ok"},
+    {"ordinal":62,"group":"signature-max","path":"/api/billing/webhook","bytes":262144,"status":200,"cpuMs":null,"wallMs":null,"outcome":null},
+    {"ordinal":63,"group":"signature-max","path":"/api/billing/webhook","bytes":262144,"status":200,"cpuMs":null,"wallMs":null,"outcome":null},
+    {"ordinal":64,"group":"signature-max","path":"/api/billing/webhook","bytes":262144,"status":200,"cpuMs":3,"wallMs":23,"outcome":"ok"},
+    {"ordinal":65,"group":"signature-max","path":"/api/billing/webhook","bytes":262144,"status":200,"cpuMs":3,"wallMs":22,"outcome":"ok"},
+    {"ordinal":66,"group":"signature-max","path":"/api/billing/webhook","bytes":262144,"status":200,"cpuMs":null,"wallMs":null,"outcome":null},
+    {"ordinal":67,"group":"signature-max","path":"/api/billing/webhook","bytes":262144,"status":200,"cpuMs":3,"wallMs":19,"outcome":"ok"},
+    {"ordinal":68,"group":"signature-max","path":"/api/billing/webhook","bytes":262144,"status":200,"cpuMs":null,"wallMs":null,"outcome":null},
+    {"ordinal":69,"group":"signature-max","path":"/api/billing/webhook","bytes":262144,"status":200,"cpuMs":3,"wallMs":22,"outcome":"ok"},
+    {"ordinal":70,"group":"signature-max","path":"/api/billing/webhook","bytes":262144,"status":200,"cpuMs":null,"wallMs":null,"outcome":null},
+    {"ordinal":71,"group":"signature-max","path":"/api/billing/webhook","bytes":262144,"status":200,"cpuMs":null,"wallMs":null,"outcome":null},
+    {"ordinal":72,"group":"signature-max","path":"/api/billing/webhook","bytes":262144,"status":200,"cpuMs":3,"wallMs":20,"outcome":"ok"},
+    {"ordinal":73,"group":"signature-max","path":"/api/billing/webhook","bytes":262144,"status":200,"cpuMs":null,"wallMs":null,"outcome":null},
+    {"ordinal":74,"group":"signature-max","path":"/api/billing/webhook","bytes":262144,"status":200,"cpuMs":null,"wallMs":null,"outcome":null},
+    {"ordinal":75,"group":"signature-max","path":"/api/billing/webhook","bytes":262144,"status":200,"cpuMs":4,"wallMs":21,"outcome":"ok"},
+    {"ordinal":76,"group":"signature-max","path":"/api/billing/webhook","bytes":262144,"status":200,"cpuMs":5,"wallMs":20,"outcome":"ok"},
+    {"ordinal":77,"group":"signature-max","path":"/api/billing/webhook","bytes":262144,"status":200,"cpuMs":null,"wallMs":null,"outcome":null},
+    {"ordinal":78,"group":"signature-max","path":"/api/billing/webhook","bytes":262144,"status":200,"cpuMs":null,"wallMs":null,"outcome":null},
+    {"ordinal":79,"group":"signature-max","path":"/api/billing/webhook","bytes":262144,"status":200,"cpuMs":3,"wallMs":19,"outcome":"ok"},
+    {"ordinal":80,"group":"signature-max","path":"/api/billing/webhook","bytes":262144,"status":200,"cpuMs":null,"wallMs":null,"outcome":null},
+    {"ordinal":81,"group":"session","path":"/api/session","status":200,"cpuMs":14,"wallMs":364,"outcome":"ok"},
+    {"ordinal":82,"group":"session","path":"/api/session","status":200,"cpuMs":4,"wallMs":272,"outcome":"ok"},
+    {"ordinal":83,"group":"session","path":"/api/session","status":200,"cpuMs":4,"wallMs":277,"outcome":"ok"},
+    {"ordinal":84,"group":"session","path":"/api/session","status":200,"cpuMs":3,"wallMs":274,"outcome":"ok"},
+    {"ordinal":85,"group":"session","path":"/api/session","status":200,"cpuMs":2,"wallMs":288,"outcome":"ok"},
+    {"ordinal":86,"group":"session","path":"/api/session","status":200,"cpuMs":4,"wallMs":276,"outcome":"ok"},
+    {"ordinal":87,"group":"session","path":"/api/session","status":200,"cpuMs":2,"wallMs":272,"outcome":"ok"},
+    {"ordinal":88,"group":"session","path":"/api/session","status":200,"cpuMs":2,"wallMs":279,"outcome":"ok"},
+    {"ordinal":89,"group":"session","path":"/api/session","status":200,"cpuMs":3,"wallMs":269,"outcome":"ok"},
+    {"ordinal":90,"group":"session","path":"/api/session","status":200,"cpuMs":3,"wallMs":274,"outcome":"ok"},
+    {"ordinal":91,"group":"session","path":"/api/session","status":200,"cpuMs":2,"wallMs":270,"outcome":"ok"},
+    {"ordinal":92,"group":"session","path":"/api/session","status":200,"cpuMs":2,"wallMs":271,"outcome":"ok"},
+    {"ordinal":93,"group":"session","path":"/api/session","status":200,"cpuMs":3,"wallMs":278,"outcome":"ok"},
+    {"ordinal":94,"group":"session","path":"/api/session","status":200,"cpuMs":2,"wallMs":269,"outcome":"ok"},
+    {"ordinal":95,"group":"session","path":"/api/session","status":200,"cpuMs":1,"wallMs":281,"outcome":"ok"},
+    {"ordinal":96,"group":"session","path":"/api/session","status":200,"cpuMs":2,"wallMs":274,"outcome":"ok"},
+    {"ordinal":97,"group":"session","path":"/api/session","status":200,"cpuMs":2,"wallMs":278,"outcome":"ok"},
+    {"ordinal":98,"group":"session","path":"/api/session","status":200,"cpuMs":1,"wallMs":262,"outcome":"ok"},
+    {"ordinal":99,"group":"session","path":"/api/session","status":200,"cpuMs":2,"wallMs":269,"outcome":"ok"},
+    {"ordinal":100,"group":"session","path":"/api/session","status":200,"cpuMs":2,"wallMs":273,"outcome":"ok"},
+    {"ordinal":101,"group":"billing","path":"/api/billing","status":200,"cpuMs":null,"wallMs":null,"outcome":null},
+    {"ordinal":102,"group":"billing","path":"/api/billing","status":200,"cpuMs":4,"wallMs":332,"outcome":"ok"},
+    {"ordinal":103,"group":"billing","path":"/api/billing","status":200,"cpuMs":null,"wallMs":null,"outcome":null},
+    {"ordinal":104,"group":"billing","path":"/api/billing","status":200,"cpuMs":4,"wallMs":340,"outcome":"ok"},
+    {"ordinal":105,"group":"billing","path":"/api/billing","status":200,"cpuMs":4,"wallMs":332,"outcome":"ok"},
+    {"ordinal":106,"group":"billing","path":"/api/billing","status":200,"cpuMs":null,"wallMs":null,"outcome":null},
+    {"ordinal":107,"group":"billing","path":"/api/billing","status":200,"cpuMs":4,"wallMs":326,"outcome":"ok"},
+    {"ordinal":108,"group":"billing","path":"/api/billing","status":200,"cpuMs":null,"wallMs":null,"outcome":null},
+    {"ordinal":109,"group":"billing","path":"/api/billing","status":200,"cpuMs":3,"wallMs":322,"outcome":"ok"},
+    {"ordinal":110,"group":"billing","path":"/api/billing","status":200,"cpuMs":4,"wallMs":313,"outcome":"ok"},
+    {"ordinal":111,"group":"billing","path":"/api/billing","status":200,"cpuMs":null,"wallMs":null,"outcome":null},
+    {"ordinal":112,"group":"billing","path":"/api/billing","status":200,"cpuMs":3,"wallMs":325,"outcome":"ok"},
+    {"ordinal":113,"group":"billing","path":"/api/billing","status":200,"cpuMs":null,"wallMs":null,"outcome":null},
+    {"ordinal":114,"group":"billing","path":"/api/billing","status":200,"cpuMs":3,"wallMs":322,"outcome":"ok"},
+    {"ordinal":115,"group":"billing","path":"/api/billing","status":200,"cpuMs":4,"wallMs":326,"outcome":"ok"},
+    {"ordinal":116,"group":"billing","path":"/api/billing","status":200,"cpuMs":null,"wallMs":null,"outcome":null},
+    {"ordinal":117,"group":"billing","path":"/api/billing","status":200,"cpuMs":4,"wallMs":336,"outcome":"ok"},
+    {"ordinal":118,"group":"billing","path":"/api/billing","status":200,"cpuMs":3,"wallMs":318,"outcome":"ok"},
+    {"ordinal":119,"group":"billing","path":"/api/billing","status":200,"cpuMs":null,"wallMs":null,"outcome":null},
+    {"ordinal":120,"group":"billing","path":"/api/billing","status":200,"cpuMs":4,"wallMs":325,"outcome":"ok"},
+    {"ordinal":121,"group":"catalog","path":"/api/billing/catalog","status":200,"cpuMs":null,"wallMs":null,"outcome":null},
+    {"ordinal":122,"group":"catalog","path":"/api/billing/catalog","status":200,"cpuMs":1,"wallMs":10,"outcome":"ok"},
+    {"ordinal":123,"group":"catalog","path":"/api/billing/catalog","status":200,"cpuMs":null,"wallMs":null,"outcome":null},
+    {"ordinal":124,"group":"catalog","path":"/api/billing/catalog","status":200,"cpuMs":null,"wallMs":null,"outcome":null},
+    {"ordinal":125,"group":"catalog","path":"/api/billing/catalog","status":200,"cpuMs":2,"wallMs":14,"outcome":"ok"},
+    {"ordinal":126,"group":"catalog","path":"/api/billing/catalog","status":200,"cpuMs":null,"wallMs":null,"outcome":null},
+    {"ordinal":127,"group":"catalog","path":"/api/billing/catalog","status":200,"cpuMs":null,"wallMs":null,"outcome":null},
+    {"ordinal":128,"group":"catalog","path":"/api/billing/catalog","status":200,"cpuMs":1,"wallMs":11,"outcome":"ok"},
+    {"ordinal":129,"group":"catalog","path":"/api/billing/catalog","status":200,"cpuMs":null,"wallMs":null,"outcome":null},
+    {"ordinal":130,"group":"catalog","path":"/api/billing/catalog","status":200,"cpuMs":null,"wallMs":null,"outcome":null},
+    {"ordinal":131,"group":"catalog","path":"/api/billing/catalog","status":200,"cpuMs":null,"wallMs":null,"outcome":null},
+    {"ordinal":132,"group":"catalog","path":"/api/billing/catalog","status":200,"cpuMs":0,"wallMs":12,"outcome":"ok"},
+    {"ordinal":133,"group":"catalog","path":"/api/billing/catalog","status":200,"cpuMs":null,"wallMs":null,"outcome":null},
+    {"ordinal":134,"group":"catalog","path":"/api/billing/catalog","status":200,"cpuMs":null,"wallMs":null,"outcome":null},
+    {"ordinal":135,"group":"catalog","path":"/api/billing/catalog","status":200,"cpuMs":0,"wallMs":11,"outcome":"ok"},
+    {"ordinal":136,"group":"catalog","path":"/api/billing/catalog","status":200,"cpuMs":null,"wallMs":null,"outcome":null},
+    {"ordinal":137,"group":"catalog","path":"/api/billing/catalog","status":200,"cpuMs":null,"wallMs":null,"outcome":null},
+    {"ordinal":138,"group":"catalog","path":"/api/billing/catalog","status":200,"cpuMs":null,"wallMs":null,"outcome":null},
+    {"ordinal":139,"group":"catalog","path":"/api/billing/catalog","status":200,"cpuMs":0,"wallMs":14,"outcome":"ok"},
+    {"ordinal":140,"group":"catalog","path":"/api/billing/catalog","status":200,"cpuMs":null,"wallMs":null,"outcome":null}
+  ]
+}

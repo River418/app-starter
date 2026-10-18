@@ -6,7 +6,9 @@ An MIT-licensed starter for deploying a React application and API together on Cl
 
 [中文说明](docs/README.zh-CN.md) · [Deployment](docs/deployment.md) · [Architecture](docs/architecture.md) · [Validation](docs/validation/phase-two-status.md)
 
-Payments default to disabled. Enable `billing` in `app.config.ts`, provide your own environment's Stripe secret key, and deploy: the setup command manages Products, versioned Prices, Portal, Webhook and secret readiness. [Billing setup, semantics and recovery](docs/billing.md) · [Phase 3 validation](docs/validation/phase-three-status.md). Real Sandbox payment gates remain unverified; local acceptance uses a deterministic provider substitute.
+[Contributing and branch policy](CONTRIBUTING.md): all changes enter `main` through a pull request; direct/force pushes and deleting `main` are blocked, including for maintainers.
+
+Payments default to disabled. Enable `billing` in `app.config.ts`, provide your own environment's Stripe secret key, and deploy: the setup command manages Products, versioned Prices, Portal, Webhook and secret readiness. [Billing setup, semantics and recovery](docs/billing.md) · [Phase 3 validation](docs/validation/phase-three-status.md). Real managed Sandbox Checkout/Portal passed against the local application. Direct Stripe-to-Cloudflare callbacks and hosted Supabase authentication also passed; complete hosted Checkout through the cloud application remains unverified. [Cloud evidence and limits](docs/validation/cloud-payment-2026-10-18.md).
 
 [Optional email](docs/email.md): Cloudflare aliases forward to your verified existing mailbox; Resend sends from your own verified domain and can provide Supabase custom SMTP. Configure once with `npm run email:setup -- dev`. No mail provider or domain is needed for default invite-mode startup.
 
@@ -56,7 +58,7 @@ Infrastructure bindings and secrets belong to each environment. The browser rece
 
 Use `prod` for production. Dev/prod must use separate Supabase projects, D1 databases, R2 buckets and secrets. Builds finish before remote migrations; the emitted D1 binding must match the migration target. Redeploying preserves data/credentials. [Detailed setup](docs/deployment.md).
 
-Free allowances help validation, but Workers Paid may be necessary. Moving password hashing to Supabase does not prove every request fits Free CPU limits. No script buys a plan. [Cloudflare pricing](https://developers.cloudflare.com/workers/platform/pricing/).
+The measured payment reconciliation path failed the Workers Free 10 ms CPU gate: all 40 samples exceeded it. Plan for Workers Paid when enabling payments; Paid performance remains untested. No script buys a plan. [Measurement scope](docs/validation/cloud-payment-2026-10-18.md) · [Cloudflare pricing](https://developers.cloudflare.com/workers/platform/pricing/).
 
 ## Checks
 
