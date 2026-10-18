@@ -6,6 +6,8 @@ An MIT-licensed starter for deploying a React application and API together on Cl
 
 [中文说明](docs/README.zh-CN.md) · [Deployment](docs/deployment.md) · [Architecture](docs/architecture.md) · [Validation](docs/validation/phase-two-status.md)
 
+[Contributing and branch policy](CONTRIBUTING.md): all changes enter `main` through a pull request; direct/force pushes and deleting `main` are blocked, including for maintainers.
+
 Payments default to disabled. Enable `billing` in `app.config.ts`, provide your own environment's Stripe secret key, and deploy: the setup command manages Products, versioned Prices, Portal, Webhook and secret readiness. [Billing setup, semantics and recovery](docs/billing.md) · [Phase 3 validation](docs/validation/phase-three-status.md). Real managed Sandbox Checkout/Portal passed against the local application. Direct Stripe-to-Cloudflare callbacks and hosted Supabase authentication also passed; complete hosted Checkout through the cloud application remains unverified. [Cloud evidence and limits](docs/validation/cloud-payment-2026-10-18.md).
 
 [Optional email](docs/email.md): Cloudflare aliases forward to your verified existing mailbox; Resend sends from your own verified domain and can provide Supabase custom SMTP. Configure once with `npm run email:setup -- dev`. No mail provider or domain is needed for default invite-mode startup.

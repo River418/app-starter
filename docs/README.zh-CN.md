@@ -2,6 +2,8 @@
 
 可独立克隆的 MIT 开源应用模板。提供 React 工作台、Supabase Auth、管理员初始化与邀请、D1 记录和私有 R2 附件，以及可选的 Stripe 支付和权益账本。Agent 运行与用量结算属于第四阶段；`agent` 目前只有独立构建入口。
 
+[贡献与分支规范](../CONTRIBUTING.md)：所有变更从短期功能分支发起 PR 合入 `main`，禁止直接推送、强推或删除 `main`，维护者同样适用。默认不强制他人审批，个人维护也可通过 PR 合并。
+
 支付默认关闭。在 `app.config.ts` 配置单币种月订阅/额度包，在忽略提交的 `.dev.vars.dev` 配置自己的 `STRIPE_SECRET_KEY`，随后正常部署。工具自动同步 Product、版本化 Price、独立 Portal 和 Webhook，发布签名密钥并验证运行版本后才开放支付。无需手工复制 Price ID。真实托管 Sandbox 的 Checkout/Portal 已通过本地应用验证，Stripe 直达 Cloudflare 回调及托管 Supabase 认证也已验证；完整云端应用的 hosted Checkout 尚未完成。详见[支付配置与恢复](billing.md)、[第三阶段验收](validation/phase-three-status.md)及[云端证据与边界](validation/cloud-payment-2026-10-18.md)。
 
 [邮件能力](email.md)同样可选：Cloudflare 将域名别名转发到你的现有邮箱，Resend 从验证过的域名发信，也可作为 Supabase 自定义 SMTP。`npm run email:setup -- dev` 负责可重复的域名/DNS/转发配置与待验证状态；默认邀请模式不要求域名或发信供应商。本轮不绑定真实域名，按 novel-writer 的发送/错误行为完成本地对标验证。

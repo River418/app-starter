@@ -2,6 +2,13 @@
 
 This is an independent open-source Cloudflare application starter. Read the design and implementation plan linked in README.md before changing behavior.
 
+## Branch management
+
+- Follow `CONTRIBUTING.md`. Every change to `main`, including documentation and hotfixes, must go through a pull request; never push directly to `main` or bypass its protection.
+- Codex work uses a `codex/<topic>` branch from current `main`. Once a PR is merged, create a new branch/PR for subsequent work.
+- Keep the active GitHub main ruleset requiring PRs/resolved conversations, blocking force pushes and deletion, with no bypass actors. Do not weaken protection to land a change. Zero required approvals intentionally supports a sole maintainer; required CI checks must correspond to real checks.
+- Verify changes and report unavailable gates before merging. Merge through the approved PR; preserve independent worktrees and private local configuration unless cleanup is explicitly authorized.
+
 ## Phase gates
 
 - Latest authorization and evidence, 2026-10-18, supersede the historical unavailable/deferred statuses below: the user authorized an independent free Supabase project, normal cloud deployment, real managed Sandbox payments/direct callbacks and CPU verification. Hosted bootstrap/login/session/admin authorization and deployed billing readiness passed. Stripe `invoice.paid` and official CLI `events resend` reached Cloudflare directly; the disabled operator fixture received exactly one 100-credit grant, a successful 990-minor-unit test refund produced one -100 reversal, and cancellation completed. All 61 provider/synthetic/internal inbox rows finished done. This fixture used direct Stripe API subscription creation and D1 membership/order fixtures, with no Supabase identity; do not claim authenticated cloud purchase from it. The separate real `cloudadmin` passed actual hosted login, cloud Checkout creation/reuse for both plans and owned Portal creation; its uncompleted test sessions were expired without granting credits. Hosted cloud Checkout payment awaits dismissal of a browser 1Password prompt. Full cloud payment E2E remains incomplete. See `docs/validation/cloud-payment-2026-10-18.md` and `docs/validation/phase-three-status.md`.
