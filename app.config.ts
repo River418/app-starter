@@ -6,5 +6,6 @@ const config: AppConfig = {
   preset: "web",
   authMode: "invite",
   maxFileBytes: 10 * 1024 * 1024,
+  analytics: { googleAnalyticsId: "" },
 };
 export default config;

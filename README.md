@@ -20,6 +20,7 @@ Prototype account-based tools, subscription products and internal workspaces. A 
 | Payments | Optional Stripe monthly subscriptions and one-time credit packs, hosted Checkout, customer Portal, invoice access and period-end cancellation |
 | Entitlements | Separate free, subscription-period and purchased credit sources, feature permissions, duplicate-grant prevention, source-specific refund/dispute handling and administrator recovery |
 | Email | Optional Cloudflare address forwarding to an existing mailbox, Resend transactional sending and configuration guidance for Supabase custom SMTP |
+| Analytics | Optional Google Analytics 4 via the official Google tag, with production-only SPA pageviews and sanitized page URLs |
 | Deployment | Frontend assets and API on one origin, native Vite/Wrangler tooling, separate local/dev/prod resources and forward-only D1 migrations |
 
 Invite mode is the default and does not require a mail provider. Public signup requires verified-email delivery through Supabase. Payments and email are optional and disabled unless configured.
@@ -34,7 +35,7 @@ Invite mode is the default and does not require a mail provider. Public signup r
 | Accounts and authentication database | Supabase Auth and its PostgreSQL database |
 | Application database | Cloudflare D1, Drizzle ORM and explicit SQL for coordinated writes |
 | File storage | Private Cloudflare R2 |
-| Optional integrations | Stripe, Cloudflare Email Routing and Resend |
+| Optional integrations | Stripe, Cloudflare Email Routing, Resend and Google Analytics 4 |
 
 Vite builds browser assets and a separate Worker for Cloudflare. Supabase stores user accounts and authentication data. D1 stores application memberships and roles, records, file metadata, orders and entitlement ledgers; R2 stores file contents. Feature code is organized into `client`, `shared` and `server` directories so browser bundles cannot import server implementations or secrets.
 
@@ -99,7 +100,7 @@ export default config;
 
 | Configuration | Where it belongs |
 |---|---|
-| Name, signup mode, upload limit, optional billing/email settings | `app.config.ts` |
+| Name, signup mode, upload limit, optional billing/email/analytics settings | `app.config.ts` |
 | Target account, public Auth settings and D1/R2 resource mappings | The selected environment in `wrangler.jsonc` |
 | Local runtime credentials | Ignored `.dev.vars` |
 | Dev/prod setup credentials | Ignored `.dev.vars.dev` / `.dev.vars.prod`, or CI environment variables |
@@ -110,6 +111,10 @@ The browser receives only the public configuration whitelist from `/api/config`.
 Enable billing by adding a `billing` configuration with your currency, pricing and benefits, then providing that environment's Stripe key. Normal deployment synchronizes owned Products, immutable Prices, Portal and Webhook configuration, publishes server-only secrets and checks readiness before opening Checkout. See [payments and entitlements](docs/billing.md).
 
 For email, configure forwarding and/or sending, then run `npm run email:setup -- dev`. Forwarding requires a domain on Cloudflare and your existing verified destination mailbox; it does not host a mailbox. Resend sending requires a verified domain. Public signup's SMTP and email templates are configured inside Supabase. See [email setup](docs/email.md).
+
+For Google Analytics 4, set `analytics: { googleAnalyticsId: 'G-XXXXXXXXXX' }` in `app.config.ts` using your own web data stream's Measurement ID. An empty ID disables analytics; the SDK loads only when `APP_ENV` is `prod`. Before enabling it, turn off **Enhanced measurement** for that stream: the app sends pageviews itself, and automatic history/form/click collection can duplicate events or capture sensitive data. See Google's [manual pageview guidance](https://developers.google.com/analytics/devguides/collection/ga4/views). Do not install another Google tag or GTM pageview tracker alongside this integration.
+
+The integration tracks the first page and pathname changes, including back/forward navigation. Query strings and fragments are removed from page and referrer URLs; query-only changes do not add pageviews. It uses the application title and sends no application user ID, email or form values. No consent UI is included; connect your application's consent flow before enabling analytics where required. After deploying, check the production site's `page_view` events in GA4 Realtime; local tests verify SDK commands, not delivery to Google.
 
 ## Deploy
 

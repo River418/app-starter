@@ -26,6 +26,7 @@ test("unknown API returns JSON, config never contains secret keys", async () => 
   const body = (await response.json()) as Record<string, unknown>;
   expect(Object.keys(body).sort()).toEqual(
     [
+      "analytics",
       "authMode",
       "authReady",
       "billingEnabled",

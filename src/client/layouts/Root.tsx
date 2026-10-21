@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   Outlet,
   useLoaderData,
+  useLocation,
   useRevalidator,
   useRouteLoaderData,
   Link,
@@ -10,6 +11,7 @@ import { useTranslation } from "react-i18next";
 import { Toaster } from "sonner";
 import { Sun, Moon, Globe } from "lucide-react";
 import { configureAuth } from "../lib/auth";
+import { trackPageView } from "../lib/analytics";
 import { queryClient } from "../lib/query";
 import { Button } from "../components/ui";
 import type { PublicConfig } from "../../shared/config";
@@ -51,9 +53,13 @@ export function Controls() {
 }
 export function Root() {
   const config = useLoaderData() as PublicConfig;
+  const { pathname } = useLocation();
   const revalidator = useRevalidator();
   const previous = useRef<string | null | undefined>(undefined);
   const [changingIdentity, setChangingIdentity] = useState(false);
+  useEffect(() => {
+    trackPageView(config, pathname);
+  }, [config, pathname]);
   useEffect(() => {
     document.title = config.title;
     const client = configureAuth(config);

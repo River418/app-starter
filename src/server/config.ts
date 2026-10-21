@@ -4,6 +4,9 @@ import type { Bindings } from "./types";
 
 export function readPublicConfig(env: Bindings): PublicConfig {
   return {
+    analytics: {
+      googleAnalyticsId: config.analytics?.googleAnalyticsId || "",
+    },
     billingEnabled: Boolean(config.billing?.enabled),
     slug: config.slug,
     title: config.title,
