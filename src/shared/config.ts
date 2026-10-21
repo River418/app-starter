@@ -14,6 +14,7 @@ export interface BillingConfig {
   automaticTax?: boolean;
 }
 export interface AppConfig {
+  analytics?: { googleAnalyticsId: string };
   email?: {
     sending?: { domain: string; from: string; replyTo?: string };
     forwarding?: { domain: string; aliases: string[] };

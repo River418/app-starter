@@ -20,7 +20,7 @@
 
 | 路径 | 职责 |
 |---|---|
-| `app.config.ts` | 应用名称、preset、认证模式、上传上限及可选支付/邮件配置 |
+| `app.config.ts` | 应用名称、preset、认证模式、上传上限及可选支付/邮件/分析统计配置 |
 | `llm.txt` | 使用者交给 Agent 的应用配置指引，串起账号、资源、可选集成、部署与验证 |
 | `wrangler.jsonc` | Worker、静态资源路由、环境变量、D1/R2 绑定与 Cron |
 | `vite.config.ts` | React/CSS 构建、Cloudflare 插件、入口选择和源码边界检查 |
@@ -28,6 +28,7 @@
 | `src/client/router.tsx` | 页面路由、配置 loader、会话和管理员布局检查 |
 | `src/client/layouts/` | 公共页面、工作台布局、身份切换处理、主题和语言控件 |
 | `src/client/lib/` | API 错误封装、Supabase 浏览器客户端、Query 与 i18n 配置 |
+| `src/client/lib/analytics.ts` | 可选 GA4 SDK 初始化、生产环境路径访问统计与 URL 参数清理 |
 | `src/client/pages/auth/`、`src/client/pages/admin/` | 登录/注册/找回/确认/初始化页面与用户管理 |
 | `src/client/components/ui/`、`src/client/styles.css` | 通用 UI 组件及样式 |
 | `src/features/records/{client,shared,server}/` | 记录页面、输入契约和所有者隔离的 CRUD |
@@ -80,6 +81,7 @@
 - 表单使用 React Hook Form/Zod；检索、分页等导航状态放在 URL；主题和语言是本地偏好。
 - Query 默认有限重试，写操作不自动重试；新增可重试写操作必须先设计服务端幂等语义。
 - 用户可见文案同步维护中英文；复用现有基础组件，不额外引入全局状态框架或通用插件层。
+- GA4 由 `app.config.ts` 的 `analytics.googleAnalyticsId` 配置，经公开配置白名单下发，仅 `prod` 且 ID 有效时加载。`Root.tsx` 按 pathname 触发手动 page_view；保留重复渲染去重与页面/来源 URL 的查询参数、hash 清理，不发送身份、表单值或认证凭据。启用前关闭数据流增强型衡量，避免重复事件和自动采集敏感字段；同意流程由派生应用接入。
 
 ## 身份、数据库与附件
 

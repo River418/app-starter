@@ -39,7 +39,7 @@ Do not move the application schema into Supabase just because it supplies the ac
 
 Configuration map:
 
-- app.config.ts: title, slug, preset, authMode, maxFileBytes, optional billing/email. These are shared build-time application choices, not separate per-environment configuration files.
+- app.config.ts: title, slug, preset, authMode, maxFileBytes, optional billing/email/analytics. These are shared build-time application choices, not separate per-environment configuration files.
 - wrangler.jsonc: selected env.dev/env.prod account_id, Worker name, public vars, D1/R2 mappings and schedules.
 - .dev.vars: ignored local-runtime credentials.
 - .dev.vars.dev / .dev.vars.prod: ignored environment-specific input to provider setup tools, or equivalent process/CI environment variables.
@@ -52,6 +52,8 @@ Use only the user's authorized provider accounts. Do not copy the maintainer's .
 ## 4. Customize and preview locally
 
 Update app.config.ts with the agreed name, slug, web preset, signup mode and upload limit. Enable only the requested billing/email options using the schemas and examples in docs/billing.md and docs/email.md. Keep both interface locales consistent when changing user-visible text. Do not replace the example records feature with new product functionality unless that is part of the request.
+
+For requested Google Analytics 4, set analytics.googleAnalyticsId to the user's own G- Measurement ID in app.config.ts; leave it empty otherwise. It is public configuration, not a secret. Tracking runs only with APP_ENV=prod and sends initial/pathname pageviews through the official gtag.js SDK, removing query strings and fragments from page/referrer URLs. Have the user disable Enhanced measurement on that data stream before enabling it, to prevent duplicate pageviews and automatic sensitive form/click collection. Do not add a second Google tag/GTM tracker. If the application needs consent, connect its consent flow before enabling; this starter does not include a consent UI. Verify real delivery in GA4 Realtime after deployment rather than claiming it from local tests.
 
 Check Node.js 24+, npm, Docker and the official Supabase CLI. SUPABASE_CLI may point to its executable. Use the lockfile:
 

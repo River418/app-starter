@@ -20,6 +20,7 @@ App Starter 是一个采用 MIT 许可证、帮助开发者快速建立应用原
 | 支付 | 可选的 Stripe 月订阅和一次性额度包、托管 Checkout、客户 Portal、账单查看和到期取消订阅 |
 | 权益 | 分别管理免费额度、订阅周期额度和已购额度，支持功能权限、重复发放防护、按来源处理退款和争议，以及管理员恢复操作 |
 | 邮件 | 可选的 Cloudflare 域名地址转发现有邮箱、Resend 事务邮件发送，以及 Supabase 自定义 SMTP 配置指引 |
+| 分析统计 | 可选的 Google Analytics 4 官方 Google tag 接入，仅统计生产环境 SPA 页面访问，并清理上报 URL |
 | 部署 | 前端资源与 API 同源部署、原生 Vite/Wrangler 工具、独立的 local/dev/prod 资源，以及只向前执行的 D1 迁移 |
 
 默认采用邀请模式，不需要邮件供应商。公开注册需要通过 Supabase 向用户发送邮箱验证邮件。支付和邮件能力均可选，未配置时不启用。
@@ -34,7 +35,7 @@ App Starter 是一个采用 MIT 许可证、帮助开发者快速建立应用原
 | 账号与认证数据库 | Supabase Auth 及其 PostgreSQL 数据库 |
 | 业务数据库 | Cloudflare D1、Drizzle ORM，以及用于协调写入的显式 SQL |
 | 文件存储 | 私有 Cloudflare R2 |
-| 可选集成 | Stripe、Cloudflare Email Routing、Resend |
+| 可选集成 | Stripe、Cloudflare Email Routing、Resend、Google Analytics 4 |
 
 Vite 为 Cloudflare 分别构建浏览器资源和 Worker。Supabase 保存用户账号与认证数据；D1 保存应用成员与角色、记录、文件元数据、订单和权益账本，R2 保存文件内容。业务模块按 `client`、`shared`、`server` 拆分，防止服务端实现或密钥进入浏览器包。
 
@@ -99,7 +100,7 @@ export default config;
 
 | 配置内容 | 存放位置 |
 |---|---|
-| 名称、注册模式、上传限制、可选支付和邮件设置 | `app.config.ts` |
+| 名称、注册模式、上传限制、可选支付、邮件和统计设置 | `app.config.ts` |
 | 目标账号、公开 Auth 配置和 D1/R2 资源映射 | `wrangler.jsonc` 中对应的环境 |
 | 本地运行凭据 | 忽略提交的 `.dev.vars` |
 | dev/prod 初始化凭据 | 忽略提交的 `.dev.vars.dev` / `.dev.vars.prod`，或 CI 环境变量 |
@@ -110,6 +111,10 @@ export default config;
 启用支付时，添加 `billing` 配置，填写币种、价格和权益，并提供对应环境的 Stripe 密钥。正常部署会同步自有 Product、不可变 Price、Portal 和 Webhook 配置，发布服务端密钥，并在就绪检查通过后开放 Checkout。详见[支付与权益](billing.md)。
 
 邮件配置可选择转发、发送或两者同时启用，随后运行 `npm run email:setup -- dev`。转发需要由 Cloudflare 管理的域名和已有的已验证收件邮箱，不提供邮箱托管；Resend 发信需要验证域名。公开注册使用的 SMTP 和邮件模板需在 Supabase 中配置。详见[邮件配置](email.md)。
+
+接入 Google Analytics 4 时，在 `app.config.ts` 中设置 `analytics: { googleAnalyticsId: 'G-XXXXXXXXXX' }`，使用你自己的网页数据流 Measurement ID。ID 留空时关闭统计；SDK 仅在 `APP_ENV` 为 `prod` 时加载。启用前请关闭该数据流的**增强型衡量**：应用自行发送页面访问事件，自动历史记录、表单和点击收集可能造成重复统计或采集敏感数据。参见 Google 的[手动页面访问说明](https://developers.google.com/analytics/devguides/collection/ga4/views)。不要同时安装另一套 Google tag 或 GTM 页面访问跟踪。
+
+统计覆盖首次访问和路径变化，包括浏览器前进、后退。页面地址和来源地址会去掉查询参数与 hash，仅查询参数变化不增加访问次数。标题使用应用名称，不发送应用用户 ID、邮箱或表单值。此接入未包含同意管理界面；需要用户同意的应用应先连接自己的同意流程再启用。部署后在 GA4 实时报告中核对生产站点的 `page_view`；本地测试验证 SDK 指令，不代表数据已送达 Google。
 
 ## 部署
 
